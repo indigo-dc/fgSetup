@@ -2,13 +2,14 @@
 This software installs and upgrades FutureGateway components.
 It provides a flexible solution to install different components on different hosts having each a different architecture.
 The setup procedure can be executed more times in order to upgrade the existing system.
+This component deprecates the original setup procedure [PortalSetup][PortalSetup]
 
 # Components
 The setup procedure supports the following FutureGateway components:
 
-* fgdb - The FutureGateway database
-* fgAPIServer - The python version of APIServer (front-end)
-* APIServerDaemon - The Java version of the APIServerDaemon (queue polling) and its related Executor Interfaces
+* fgdb - The FutureGateway database; available on [fgAPIServer][fgdb]
+* [fgAPIServer][fgAPIServer] - The python version of APIServer (front-end)
+* [APIServerDaemon][ApiServerDaemon] - The Java version of the APIServerDaemon (queue polling) and its related Executor Interfaces
 * Liferay62 - A liferay portal and eventually its SDK
 * Liferay7 - A liferay portal and eventually its SDK
 
@@ -26,7 +27,7 @@ The installation process foresees the following steps:
 2. Modify the setup\_config.sh file configuring each FutureGateway service as designed above. For each component contains its own specific settings.
 3. From the installation host, execute the script setup\_futuregateway.sh. The first time the setup procedure will install the component, while further execution will try to upgrade the components and its configurations accordingly to the values placed in the file setup\_config.sh
 
-
-
-
+[PortalSetup]: <https://github.com/indigo-dc/PortalSetup>
+[fgAPIServer]: <https://github.com/indigo-dc/fgAPIServer>
+[APIServerDaemon]: <https://github.com/indigo-dc/APIServerDaemon>
 
