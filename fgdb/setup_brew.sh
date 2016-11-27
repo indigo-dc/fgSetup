@@ -6,6 +6,7 @@
 #
 
 source .fgprofile/commons
+source .fgprofile/brew_commons
 source .fgprofile/config
 
 FGLOG=fgdb.log
@@ -26,31 +27,6 @@ cleanup_tempFiles() {
   done
 }
 
-# Install a given brew package
-# $1 package name
-install_brew() {
-    PKGNAME=$1
-    out "Installing package: '"$PKGNAME"' ... " 1
-    $BREW ls $PKGNAME >/dev/null 2>/dev/null
-    BREWRES=$?
-    if [ $BREWRES -ne 0 ]; then
-        out "(installing) " 1 1
-        # Package is not installed; try toinstall it
-        $BREW install $PKGNAME
-        BREWRES=$?        
-    else
-        out "(existing) " 1 1
-    fi
-    RES=$?
-    if [ $RES -ne 0 ]; then
-        out "failed" 0 1
-        break
-    else
-        out "done" 0 1
-    fi
-    return $BREWRES
-}
-
 #
 # Script body
 #
@@ -61,12 +37,20 @@ trap cleanup_tempFiles EXIT
 # Local temporary files for SSH output and error files
 STD_OUT=$(mktemp -t stdout.XXXXXX)
 STD_ERR=$(mktemp -t stderr.XXXXXX)
-TEMP_FILES+=( STD_OUT )
-TEMP_FILES+=( STD_ERR )
-
+TEMP_FILES+=( $STD_OUT )
+TEMP_FILES+=( $STD_ERR )
 
 out "Starting FutureGateway database brew versioned setup script"
 
+out "Verifying package manager and fgAPIServer user ..."
+
+# Check for brew and install it eventually
+check_and_setup_brew  
+
+# Check for FutureGateway fgAPIServer unix user
+check_and_create_user $FGDB_HOSTUNAME
+
+# Mandatory packages installation
 BREW=$(which brew)
 if [ "$BREW" = "" ]; then
   out "Did not find brew package manager"
@@ -75,7 +59,6 @@ fi
 out "Brew is on: '"$BREW"'"
 out "Installing packages ..."
 
-# Mandatory packages installation
 BREWPACKAGES=(
   git
   wget
@@ -191,7 +174,7 @@ if [ $RES -eq 0 ]; then
    else
        out "done" 0 1
        if [ $ASDBCOUNT -ne 0 ]; then
-           # Database do not exists; install it
+           # Database exists; determine version and patch
            out "APIServerDatabase exists; deterimne its version ... " 1
            ASDBVER=$(asdb "select version from db_patches order by 1 desc limit 1;")
            RES=$?
@@ -204,6 +187,10 @@ if [ $RES -eq 0 ]; then
            out "done ($ASDBVER)" 0 1
            out "Attempting to patch APIServer database ... " 
            cd $FGDB_GITREPO/db_patches
+           # Following replace_line statement are required because db_patching 
+           # uses fixed and default values
+           replace_line patch_functions.sh "mysql -h localhost -P 3306 -u fgapiserver -pfgapiserver_password fgapiserver < \$SQLFILE" "    mysql -h $FGDB_HOST -P $FGDB_PORT -u $FGDB_USER -p$FGDB_PASSWD $FGDB_NAME < \$SQLFILE"
+           replace_line patch_functions.sh "mysql -h localhost -P 3306 -u fgapiserver -pfgapiserver_password fgapiserver -s -N -e \"\$SQLCMD\"" "mysql -h localhost -P 3306 -u fgapiserver -pfgapiserver_password fgapiserver -s -N -e \"\$SQLCMD\""
            chmod +x patch_apply.sh
            ./patch_apply.sh
            RES=$?
@@ -216,17 +203,20 @@ if [ $RES -eq 0 ]; then
            cd - 2>/dev/null >/dev/null 
        else
            # Database does not exist; create it
-           out "APIServer database does not exists; creating  it... "
+           out "APIServer database does not exists; creating  it... " 1
            cd $FGDB_GITREPO
-           asdbr "-x fgapiserver.sql"
+           ASDB_OPTS="< fgapiserver_db.sql"
+           asdbr           
            RES=$?
+           ASDB_OPTS="-sN"
            if [ $RES -ne 0 ]; then
                out "failed" 0 1
                out "Error creating database"
                exit 1
            fi
+           out "done" 0 1
            out "APIServer database successfully created"
-           cd - 2>/dev/null >/dev/null            
+           cd - 2>/dev/null >/dev/null           
        fi
    fi
    

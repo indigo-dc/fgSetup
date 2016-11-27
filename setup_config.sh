@@ -38,7 +38,7 @@ FGDB_VARS="FGDB_HOST\
            FGDB_SSHPORT\
            FGDB_GITREPO\
            FGDB_GITTAG"
-FGDB_HOST=localhost                  # Database server address
+FGDB_HOST=127.0.0.1                  # Database server address
 FGDB_HOSTUNAME=futuregateway         # Database host username
 FGDB_PORT=3306                       # Database port number
 FGDB_NAME=fgapiserver                # Database name
@@ -67,16 +67,33 @@ FGAPISERVER_VARS="FGAPISERVER_SETUP\
                   FGAPISERVER_SSHPORT\
                   FGAPISERVER_WSGI\
                   FGAPISERVER_GITREPO\
-                  FGAPISERVER_GITTAG"
+                  FGAPISERVER_GITTAG\
+                  FGAPISERVER_IOPATH\
+                  FGAPISERVER_APIVER\
+                  FGAPISERVER_DEBUG\
+                  FGAPISERVER_NOTOKEN\
+                  FGAPISERVER_PTVFLAG\
+                  FGAPISERVER_PTVENDPOINT\
+                  FGAPISERVER_PTVMAPFILE\
+                  FGAPISERVER_PTVUSER\
+                  FGAPISERVER_PTVPASS"
 FGAPISERVER_SETUP=1                  # Enable this flag to setup fgAPIServer
-FGAPISERVER_HOST=localhost           # fgAPIServer server host address
+FGAPISERVER_HOST=0.0.0.0             # fgAPIServer server host address
 FGAPISERVER_HOSTUNAME=futuregateway  # fgAPIServer host username 
 FGAPISERVER_PORT=8888                # fgAPIServer port number (no WSGI)
 FGAPISERVER_SSHPORT=22               # fgAPIServer ssh port number
 FGAPISERVER_WSGI=1                   # 0 turn off WSGI configuration (apache)
 FGAPISERVER_GITREPO=fgAPIServer      # fgAPIServer Git repository name
 FGAPISERVER_GITTAG="master"          # fgAPIServer Git repository tag/branch name
-
+FGAPISERVER_IOPATH=/tmp              # fgAPIServer I/O sandbox directory
+FGAPISERVER_APIVER=1.0               # FutureGateway API version implemented
+FGAPISERVER_DEBUG=True               # Enable/Disable fgAPIServer debug mode
+FGAPISERVER_NOTOKEN=False            # Enable/Disable token mechanism
+FGAPISERVER_PTVFLAG=True             # Enable/Disable PTV (token mode on)
+FGAPISERVER_PTVUSER="tokenver_user"  # PTV HTTP access service username
+FGAPISERVER_PTVPASS="tokenver_pass"  # PTV HTTP service password
+FGAPISERVER_PTVENDPOINT="http://localhost:8889/checktoken" 
+FGAPISERVER_PTVMAPFILE="fgapiserver_ptvmap.json"
 
 # APIServer
 #
@@ -97,7 +114,7 @@ APISERVERDAEMON_ENVS="APISERVERDAEMON_SETUP\
                       APISERVERDAEMON_GITREPO\
                       APISERVERDAEMON_GITTAG"
 APISERVERDAEMON_SETUP=1                 # Enable this flag to setup APIServerDaemon
-APISERVERDAEMON_HOST=localhost          # APIServerDaemon host address
+APISERVERDAEMON_HOST=127.0.0.1          # APIServerDaemon host address
 APISERVERDAEMON_HOSTUNAME=futuregateway # APIServerDaemon host username
 APISERVERDAEMON_PORT=8080               # APIServerDaemon port number
 APISERVERDAEMON_SSHPORT=22              # APIServerDaemon SSH port number
@@ -106,7 +123,7 @@ APISERVERDAEMON_GITTAG="master"         # fgAPIServer Git repository tag/branch 
 
 # GridnCloud Engine DB settings
 UTDB_FGAPPID=10000                   # FutureGateway appId in GridnCloud Engine
-UTDB_HOST=localhost                  # Database server address
+UTDB_HOST=127.0.0.1                  # Database server address
 UTDB_HOSTUNAME=futuregateway         # Database host username
 UTDB_PORT=3306                       # Database port number
 UTDB_NAME=userstracking              # Database name
@@ -143,7 +160,7 @@ FGPORTAL_LIFERAY62_ENVS="FGPORTAL_LIFERAY62\
                          FGPORTAL_LIFERAY62_GITREPO\
                          FGPORTAL_LIFERAY62_GITTAG"
 FGPORTAL_LIFERAY62_SETUP=0                # Enable this flag to support Liferay62 setup
-FGPORTAL_LIFERAY62_HOST=localhost         # Liferay62 portal host address
+FGPORTAL_LIFERAY62_HOST=127.0.0.1         # Liferay62 portal host address
 FGPORTAL_LIFERAY62_HOSTUNAME=liferayadmin # Liferay62 portal host username
 FGPORTAL_LIFERAY62_PORT=8080              # Liferay62 portal port number
 FGPORTAL_LIFERAY62_SSHPORT=22             # Liferay62 portal ssh port
@@ -174,7 +191,7 @@ FGPORTAL_LIFERAY7_ENVS="FGPORTAL_LIFERAY7
                         FGPORTAL_LIFERAY62_GITREPO\
                         FGPORTAL_LIFERAY62_GITTAG"
 FGPORTAL_LIFERAY7_SETUP=1                # Enable this flag to support Liferay7 setup
-FGPORTAL_LIFERAY7_HOST=localhost         # Liferay7 portal host address
+FGPORTAL_LIFERAY7_HOST=127.0.0.1         # Liferay7 portal host address
 FGPORTAL_LIFERAY7_HOSTUNAME=liferayadmin # Liferay7 portal host username
 FGPORTAL_LIFERAY7_PORT=8080              # Liferay7 portal port number
 FGPORTAL_LIFERAY7_SSHPORT=22             # Liferay7 portal ssh port

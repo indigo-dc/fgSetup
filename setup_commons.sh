@@ -2,6 +2,8 @@
 #
 # FutureGateway common functions
 #
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+#
 
 # Timestamp
 get_ts() {
@@ -83,11 +85,11 @@ fg_exec() {
 #  $3 # New line content
 #  $4 # Optionally specify a suffix to keep a safe copy
 replace_line() {
-  file_name=$1   # File to change
-  pattern=$2     # Matching pattern that identifies the line
-  new_line=$3    # New line content
-  keep_suffix=$4 # Optionally specify a suffix to keep a safe copy
-
+  file_name="$1"   # File to change
+  pattern="$2"     # Matching pattern that identifies the line
+  new_line="$3"    # New line content
+  keep_suffix="$4" # Optionally specify a suffix to keep a safe copy
+  
   if [ "$file_name" != "" -a -f $file_name -a "$pattern" != "" ]; then
     TMP=$(mktemp /tmp/fg_replace_XXXXXXXX)
     cp $file_name $TMP
@@ -411,10 +413,9 @@ ssh_getfile() {
 
 # asdb - Tool to manage FutureGateway database
 asdb() {
-  #cmd=$(echo "$*" | sed s/"$0"/""/)
   cmd=$@
   if [ "$cmd" != "" ]; then
-    cmd="-e \"$cmd\""
+    cmd="-e \"""$cmd""\""
   fi
   dbcn "$FGDB_HOST" "$FGDB_PORT" "$FGDB_USER" "$FGDB_PASSWD" "$ASDB_OPTS" "$FGDB_NAME" "$cmd"
   RES=$?
@@ -425,9 +426,9 @@ asdb() {
 asdbr() {
   cmd=$@
   if [ "$cmd" != "" ]; then
-    cmd="-e \"$cmd\""
+    cmd="-e \"""$cmd""\""
   fi
-  dbcn "$FGDB_HOST" "$FGDB_PORT" root "$FGDB_ROOTPWD" "$ASDB_OPTS" "$FGDB_NAME" "$cmd"
+  dbcn "$FGDB_HOST" "$FGDB_PORT" root "$FGDB_ROOTPWD" "$ASDB_OPTS" "" "$cmd"
   RES=$?
   return $RES
 }
@@ -436,7 +437,7 @@ asdbr() {
 utdb() {
   cmd=$@
   if [ "$cmd" != "" ]; then
-    cmd="-e \"$cmd\""
+    cmd="-e \"""$cmd""\""
   fi
   dbcn "$UTDB_HOST" "$UTDB_PORT" "$UTDB_USER" "$UTDB_PASSWD" "$UTDB_OPTS" "$UTDB_NAME" "$cmd"
   RES=$?
@@ -447,9 +448,9 @@ utdb() {
 utdbr() {
   cmd=$@
   if [ "$cmd" != "" ]; then
-    cmd="-e \"$cmd\""
+    cmd="-e \"""$cmd""\""
   fi
-  dbcn "$FGDB_HOST" "$FGDB_PORT" root "$UTDB_ROOTPWD" "$UTDB_OPTS" "$FGDB_NAME" "$cmd"
+  dbcn "$FGDB_HOST" "$FGDB_PORT" root "$UTDB_ROOTPWD" "$UTDB_OPTS" "" "$cmd"
   RES=$?
   return $RES
 }

@@ -6,6 +6,7 @@
 #
 
 source .fgprofile/commons
+source .fgprofile/brew_commons
 source .fgprofile/config
 
 FGLOG=fgAPIServer.log
@@ -27,31 +28,6 @@ cleanup_tempFiles() {
   done
 }
 
-# Install a given brew package
-# $1 package name
-install_brew() {
-    PKGNAME=$1
-    out "Installing package: '"$PKGNAME"' ... " 1
-    $BREW ls $PKGNAME >/dev/null 2>/dev/null
-    BREWRES=$?
-    if [ $BREWRES -ne 0 ]; then
-        out "(installing) " 1 1
-        # Package is not installed; try toinstall it
-        $BREW install $PKGNAME
-        BREWRES=$?        
-    else
-        out "(existing) " 1 1
-    fi
-    RES=$?
-    if [ $RES -ne 0 ]; then
-        out "failed" 0 1
-        break
-    else
-        out "done" 0 1
-    fi
-    return $BREWRES
-}
-
 #
 # Script body
 #
@@ -65,15 +41,23 @@ STD_ERR=$(mktemp -t stderr.XXXXXX)
 TEMP_FILES+=( STD_OUT )
 TEMP_FILES+=( STD_ERR )
 
-
 out "Starting FutureGateway fgAPIServer brew versioned setup script"
 
-BREW=$(which brew)
+out "Verifying package manager and fgAPIServer user ..."
+
+# Check for brew and install it eventually
+check_and_setup_brew
+
+# Check for FutureGateway fgAPIServer unix user
+check_and_create_user $FGAPISERVER_HOSTUNAME
+
+# Mandatory packages installation
 if [ "$BREW" = "" ]; then
   out "Did not find brew package manager"
   exit 1
 fi
 out "Brew is on: '"$BREW"'"
+
 out "Installing packages ..."
 
 # Mandatory packages installation
@@ -184,8 +168,10 @@ if [ $RES -eq 0 ]; then
        out "Configuring fgAPIServer for stand-alone execution ..."
        CURRDIR=$(pwd)
        APISERVERDAEMON_LAUNCHDFILE=$(mktemp launchd.XXXXXX)
-       TEMP_FILES+=( APISERVERDAEMON_LAUNCHDFILE )
-       cat >/Library/LaunchDaemons/it.infn.ct.fgAPIServer.plist <<EOF
+       TEMP_FILES+=( $APISERVERDAEMON_LAUNCHDFILE )
+       sudo chown root:Admin /Library/LaunchDaemons
+       sudo chmod g+w /Library/LaunchDaemons
+       sudo cat >/Library/LaunchDaemons/it.infn.ct.fgAPIServer.plist <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -197,13 +183,18 @@ if [ $RES -eq 0 ]; then
 		<key>KeepAlive</key>
 		<true/>
 		<key>UserName</key>
-        <string>$FGAPISERVER_HOSTUNAME</string>
-        <key>WorkingDirectory</key>
-        <string>$CURRDIR/$FGAPISERVER_GITREPO</string>
+		<string>$FGAPISERVER_HOSTUNAME</string>
+		<key>WorkingDirectory</key>
+		<string>$CURRDIR/$FGAPISERVER_GITREPO</string>
 	</dict>
 </plist>
 EOF
-       # Executing fgAPIServer service  
+       # Executing fgAPIServer service
+       sudo chown root:wheel /Library/LaunchDaemons
+       sudo chmod g-w /Library/LaunchDaemons
+       sudo chown root /Library/LaunchDaemons/it.infn.ct.fgAPIServer.plist
+       sudo chgrp wheel /Library/LaunchDaemons/it.infn.ct.fgAPIServer.plist
+       sudo chmod o-w /Library/LaunchDaemons/it.infn.ct.fgAPIServer.plist
        sudo launchctl load -w /Library/LaunchDaemons/it.infn.ct.fgAPIServer.plist
    fi
    # Now take care of environment settings
@@ -231,6 +222,33 @@ EOF
    #declare -f dbcn  >> $FGAPISERVERENVFILEPATH
    #out "done" 0 1
    out "User profile successfully created"
+   
+   # Now configure fgAPIServer accordingly to configuration settings
+   out "Configuring fgAPIServer ... " 1
+   cd $FGAPISERVER_GITREPO
+   FGAPISERVER_CONFVALUES=(
+    "fgapisrv_host=\"$FGAPISERVER_HOST\""
+    "fgapisrv_debug=\"$FGAPISERVER_DEBUG\""
+    "fgapisrv_port=\"$FGAPISERVER_PORT\""
+    "fgapisrv_iosandbox=\"$FGAPISERVER_IOPATH\""
+    "fgapisrv_db_port=\"$FGDB_PORT\""
+    "fgapisrv_db_pass=\"$FGDB_PASSWD\""
+    "fgapisrv_db_host=\"$FGDB_HOST\""
+    "fgapisrv_db_name=\"$FGDB_HOST\""
+    "fgapisrv_geappid=\"$UTDB_FGAPPID\""
+    "fgapiver=\"$FGAPISERVER_APIVER\""
+    "fgapisrv_notoken=\"$FGAPISERVER_NOTOKEN\""
+    "fgapisrv_lnkptvflag=\"$FGAPISERVER_PTVFLAG\""
+    "fgapisrv_ptvendpoint=\"$FGAPISERVER_PTVENDPOINT\""
+    "fgapisrv_ptvmapfile=\"$FGAPISERVER_PTVMAPFILE\""
+    "fgapisrv_ptvuser=\"$FGAPISERVER_PTVUSER\""
+    "fgapisrv_ptvpass=\"$FGAPISERVER_PTVPASS\""
+   )
+   for confvalue in ${FGAPISERVER_CONFVALUES[@]}; do
+       replace_line fgapiserver.conf "fgapisrv_host=" "$confvalue"
+   done
+   cd - 2>/dev/null >/dev/null
+   out "done" 0 1
 fi
 
 # Report installation termination

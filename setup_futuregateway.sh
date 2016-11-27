@@ -89,8 +89,8 @@ setup_PreRequisites() {
   	# Local temporary files for SSH output and error files
 	SSH_OUT=$(mktemp -t ssh_command.XXXXXX)
 	SSH_ERR=$(mktemp -t ssh_command.XXXXXX)
-	TEMP_FILES+=( SSH_OUT )
-	TEMP_FILES+=( SSH_ERR )
+	TEMP_FILES+=( $SSH_OUT )
+	TEMP_FILES+=( $SSH_ERR )
     
     return $RES
 }
@@ -147,8 +147,9 @@ EOF
 	         ssh_command $SETUP_SERVICE "sudo -n true" $SSH_OUT $SSH_ERR && 
 	         out "passed" 0 1 &&
 	     out "Determining '"$SETUP_SERVICE"' package manager ... " 1 &&
-	         ssh_command $SETUP_SERVICE "/bin/bash -x \"which apt-get || which yum || which brew || echo unsupported\"" $SSH_OUT $SSH_ERR &&
-	         out "passed ("$(cat $SSH_OUT)")" 0 1 &&
+	         ssh_command $SETUP_SERVICE "/bin/bash -x \"which apt-get || which yum || ([ \"\$(uname -s)\" = \"Darwin\" ] && echo \"brew\") || echo unsupported\"" $SSH_OUT $SSH_ERR &&
+	         PKGMGR=$(cat $SSH_OUT) &&
+	         out "passed ("$PKGMGR")" 0 1 &&
              echo $SETUP_SERVICE" "$(cat $SSH_OUT) >> $SERVICE_PKGMGR &&
          out "Setting up FutureGateway environment settings for service '"$SETUP_SERVICE"' ..." 1 &&
              ssh_sendfile $SETUP_SERVICE "$MKPROFILESCRIPT" "$MKPROFILESCRIPT" $SSH_OUT $SSH_ERR &&
@@ -156,8 +157,11 @@ EOF
              ssh_command $SETUP_SERVICE "./$MKPROFILESCRIPT" $SSH_OUT $SSH_ERR &&
              ssh_command $SETUP_SERVICE "rm -f ./$MKPROFILESCRIPT" $SSH_OUT $SSH_ERR &&
              out "done" 0 1 &&
-         out "Sending setup_common.sh file to the host ... " 1 &&
+         out "Sending setup_commons files to the host ... " 1 &&
              ssh_sendfile $SETUP_SERVICE "setup_commons.sh" ".fgprofile/commons" $SSH_OUT $SSH_ERR &&
+             [ "$PKGMGR" = "brew" ] && ssh_sendfile $SETUP_SERVICE "setup_brew_commons.sh" ".fgprofile/brew_commons" $SSH_OUT $SSH_ERR &&
+             #[ "$PKGMGR" = "apt-get" ] && ssh_sendfile $SETUP_SERVICE "setup_deb_commons.sh" ".fgprofile/deb_commons" $SSH_OUT $SSH_ERR &&
+             #[ "$PKGMGR" = "yum" ] && ssh_sendfile $SETUP_SERVICE "setup_yum_commons.sh" ".fgprofile/yum_commons" $SSH_OUT $SSH_ERR &&
              out "passed" 0 1 &&
          out "Sending setup_config.sh file to the host ... " 1 &&    
              ssh_sendfile $SETUP_SERVICE "setup_config.sh" ".fgprofile/config" $SSH_OUT $SSH_ERR &&
@@ -183,7 +187,7 @@ setup_CheckHosts() {
 	
     #Global scope temporary file keeping service package manager information
 	SERVICE_PKGMGR=$(mktemp service_pkgmgr.XXXXXX)
-    TEMP_FILES+=( SERVICE_PKGMGR )
+    TEMP_FILES+=( $SERVICE_PKGMGR )
 	
 	setup_CheckHost 1 fgdb &&
 	setup_CheckHost $FGAPISERVER_SETUP fgAPIServer &&
@@ -270,7 +274,7 @@ setup_component() {
 	ssh_command $SETUP_SERVICE "rm -f .fgout" $SSH_OUT $SSH_ERR
 	ssh_command $SETUP_SERVICE "rm -f .fgerr" $SSH_OUT $SSH_ERR
 	ssh_command $SETUP_SERVICE "/bin/bash -l ./$SETUP_SCRIPT 2>.fgerr >.fgout" $SSH_OUT $SSH_ERR
-    RES=$?
+    COMPONENT_RES=$?
     if [ $RES -ne 0 ]; then
 	    out "failed" 0 1 
 	    err "Failing $SETUP_SERVICE setup; ssh output and error files below"
@@ -292,7 +296,7 @@ setup_component() {
     outf $SSH_ERR
     out "$SETUP_SERVICE (end)"       
 
-    return $RES
+    return $COMPONENT_RES
 }
 
 
