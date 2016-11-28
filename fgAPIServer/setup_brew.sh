@@ -73,20 +73,15 @@ BREWPACKAGES=(
 if [ $FGAPISERVER_WSGI -ne 0 ]; then
     out "Installing WSGI pre-requisites"
     # XCode Tools are necessary
-    out "XCode command line tools ... " 1
-    if [ "$(which cc)" = "" ]; then
-        out "installing" 0 1
-        touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress;
-        PROD=$(softwareupdate -l |
-               grep "\*.*Command Line" |
-               head -n 1 | awk -F"*" '{print $2}' |
-               sed -e 's/^ *//' |
-               tr -d '\n')
-        softwareupdate -i "$PROD" -v;
-        out "XCode command line tools installed"
-    else
-        out "existing" 0 1
-    fi
+    out "XCode command line tools ... "
+     touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress;
+     PROD=$(softwareupdate -l |
+          grep "\*.*Command Line" |
+          head -n 1 | awk -F"*" '{print $2}' |
+          sed -e 's/^ *//' |
+          tr -d '\n')
+    softwareupdate -i "$PROD" -v;
+    out "XCode command line tools installed"
     # brew tap apache
     brew tap homebrew/apache
     # Add mod_wsgi on  brew package list
@@ -196,12 +191,15 @@ if [ $RES -eq 0 ]; then
            out "ERROR: Apache2 seems not installed in your system, impossible to configure wsgi"
            exit 1
        fi
-       sudo chmod o+w /etc/apache2//users/$FGAPISERVER_HOSTUNAME.conf 
+       MYSQLPYPATH=$(pip show $(pip list --format=columns | grep MySQL-python | awk '{ print $1 }') | grep Location | awk '{ print $2 }')
+       MOD_WSGI=$($BREW ls mod_wsgi | grep "mod_wsgi.so")
+       sudo chmod o+w /etc/apache2/other
        sudo cat >/etc/apache2/other/fgapiserver.conf <<EOF
+LoadModule wsgi_module $MOD_WSGI
 <IfModule wsgi_module>
     <VirtualHost *:80>
         ServerName fgapiserver
-        WSGIDaemonProcess fgapiserver user=$FGAPISERVER_HOSTUNAME group=$FGAPISERVER_HOSTUNAME processes=2 threads=5 home=$HOME/$FGAPISERVER_GITREPO
+        WSGIDaemonProcess fgapiserver user=$FGAPISERVER_HOSTUNAME group=Admin processes=2 threads=5 home=$HOME/$FGAPISERVER_GITREPO python-path=$MYSQLPYPATH
         WSGIProcessGroup fgapiserver
         WSGIScriptAlias /fgapiserver $HOME/$FGAPISERVER_GITREPO/fgapiserver.wsgi
         <Directory $HOME/$FGAPISERVER_GITREPO>
@@ -216,7 +214,7 @@ if [ $RES -eq 0 ]; then
     </VirtualHost>
 </IfModule>
 EOF
-        sudo chmod o-w /etc/apache2//users/$FGAPISERVER_HOSTUNAME.conf 
+        sudo chmod o-w /etc/apache2/other
         sudo /usr/sbin/apachectl restart
    else
        out "Configuring fgAPIServer for stand-alone execution ..."
@@ -282,28 +280,23 @@ EOF
    
    # Now configure fgAPIServer accordingly to configuration settings
    out "Configuring fgAPIServer ... " 1
-   cd $FGAPISERVER_GITREPO
-   FGAPISERVER_CONFVALUES=(
-    "fgapisrv_host=\"$FGAPISERVER_HOST\""
-    "fgapisrv_debug=\"$FGAPISERVER_DEBUG\""
-    "fgapisrv_port=\"$FGAPISERVER_PORT\""
-    "fgapisrv_iosandbox=\"$FGAPISERVER_IOPATH\""
-    "fgapisrv_db_port=\"$FGDB_PORT\""
-    "fgapisrv_db_pass=\"$FGDB_PASSWD\""
-    "fgapisrv_db_host=\"$FGDB_HOST\""
-    "fgapisrv_db_name=\"$FGDB_HOST\""
-    "fgapisrv_geappid=\"$UTDB_FGAPPID\""
-    "fgapiver=\"$FGAPISERVER_APIVER\""
-    "fgapisrv_notoken=\"$FGAPISERVER_NOTOKEN\""
-    "fgapisrv_lnkptvflag=\"$FGAPISERVER_PTVFLAG\""
-    "fgapisrv_ptvendpoint=\"$FGAPISERVER_PTVENDPOINT\""
-    "fgapisrv_ptvmapfile=\"$FGAPISERVER_PTVMAPFILE\""
-    "fgapisrv_ptvuser=\"$FGAPISERVER_PTVUSER\""
-    "fgapisrv_ptvpass=\"$FGAPISERVER_PTVPASS\""
-   )
-   for confvalue in ${FGAPISERVER_CONFVALUES[@]}; do
-       replace_line fgapiserver.conf "fgapisrv_host=" "$confvalue"
-   done
+   cd $HOME/$FGAPISERVER_GITREPO
+   replace_line fgapiserver.conf "fgapisrv_host" "fgapisrv_host = \"$FGAPISERVER_HOST\""
+   replace_line fgapiserver.conf "fgapisrv_debug" "fgapisrv_debug = \"$FGAPISERVER_DEBUG\""
+   replace_line fgapiserver.conf "fgapisrv_port" "fgapisrv_port = \"$FGAPISERVER_PORT\""
+   replace_line fgapiserver.conf "fgapisrv_iosandbox" "fgapisrv_iosandbox = \"$FGAPISERVER_IOPATH\""
+   replace_line fgapiserver.conf "fgapisrv_db_port" "fgapisrv_db_port = \"$FGDB_PORT\""
+   replace_line fgapiserver.conf "fgapisrv_db_pass" "fgapisrv_db_pass = \"$FGDB_PASSWD\""
+   replace_line fgapiserver.conf "fgapisrv_db_host" "fgapisrv_db_host = \"$FGDB_HOST\""
+   replace_line fgapiserver.conf "fgapisrv_db_name" "fgapisrv_db_name = \"$FGDB_HOST\""
+   replace_line fgapiserver.conf "fgapisrv_geappid" "fgapisrv_geappid = \"$UTDB_FGAPPID\""
+   replace_line fgapiserver.conf "fgapiver" "fgapiver = \"$FGAPISERVER_APIVER\""
+   replace_line fgapiserver.conf "fgapisrv_notoken" "fgapisrv_notoken = \"$FGAPISERVER_NOTOKEN\""
+   replace_line fgapiserver.conf "fgapisrv_lnkptvflag" "fgapisrv_lnkptvflag = \"$FGAPISERVER_PTVFLAG\""
+   replace_line fgapiserver.conf "fgapisrv_ptvendpoint" "fgapisrv_ptvendpoint = \"$FGAPISERVER_PTVENDPOINT\""
+   replace_line fgapiserver.conf "fgapisrv_ptvmapfile" "fgapisrv_ptvmapfile = \"$FGAPISERVER_PTVMAPFILE\""
+   replace_line fgapiserver.conf "fgapisrv_ptvuser" "fgapisrv_ptvuser = \"$FGAPISERVER_PTVUSER\""
+   replace_line fgapiserver.conf "fgapisrv_ptvpass" "fgapisrv_ptvpass = \"$FGAPISERVER_PTVPASS\""
    cd - 2>/dev/null >/dev/null
    out "done" 0 1
 fi
