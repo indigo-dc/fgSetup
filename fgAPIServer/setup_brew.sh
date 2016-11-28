@@ -38,8 +38,8 @@ trap cleanup_tempFiles EXIT
 # Local temporary files for SSH output and error files
 STD_OUT=$(mktemp -t stdout.XXXXXX)
 STD_ERR=$(mktemp -t stderr.XXXXXX)
-TEMP_FILES+=( STD_OUT )
-TEMP_FILES+=( STD_ERR )
+TEMP_FILES+=( $STD_OUT )
+TEMP_FILES+=( $STD_ERR )
 
 out "Starting FutureGateway fgAPIServer brew versioned setup script"
 
@@ -69,6 +69,29 @@ BREWPACKAGES=(
   mysql
   python
 )
+# WSGI requires particular setup
+if [ $FGAPISERVER_WSGI -ne 0 ]; then
+    out "Installing WSGI pre-requisites"
+    # XCode Tools are necessary
+    out "XCode command line tools ... " 1
+    if [ "$(which cc)" = "" ]; then
+        out "installing" 0 1
+        touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress;
+        PROD=$(softwareupdate -l |
+               grep "\*.*Command Line" |
+               head -n 1 | awk -F"*" '{print $2}' |
+               sed -e 's/^ *//' |
+               tr -d '\n')
+        softwareupdate -i "$PROD" -v;
+        out "XCode command line tools installed"
+    else
+        out "existing" 0 1
+    fi
+    # brew tap apache
+    brew tap homebrew/apache
+    # Add mod_wsgi on  brew package list
+    BREWPACKAGES+=( "mod_wsgi" )
+fi
 for pkg in ${BREWPACKAGES[@]}; do    
     install_brew $pkg     
 done
@@ -160,10 +183,41 @@ if [ $RES -eq 0 ]; then
    # Take care of config values to setup fgapiserver.conf properly
    
    # WSGI or screen configuration
-   ####### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   ###### change below -eq 0 in -ne 0; testing launchd
-   if [ $FGAPISERVER_WSGI -eq 0 ]; then
+   if [ $FGAPISERVER_WSGI -ne 0 ]; then
        out "Configuring fgAPIServer for wsgi ..."
+       
+       # Stop and remove fixed agent if it exists
+       if [ -f /Library/LaunchDaemons/it.infn.ct.fgAPIServer.plist ]; then
+           sudo launchctl stop it.infn.ct.fgAPIServer
+           sudo launchctl remove it.infn.ct.fgAPIServer
+       fi
+       # Configureing WSGI with apache
+       if [ ! -d /etc/apache2 ]; then
+           out "ERROR: Apache2 seems not installed in your system, impossible to configure wsgi"
+           exit 1
+       fi
+       sudo chmod o+w /etc/apache2//users/$FGAPISERVER_HOSTUNAME.conf 
+       sudo cat >/etc/apache2/other/fgapiserver.conf <<EOF
+<IfModule wsgi_module>
+    <VirtualHost *:80>
+        ServerName fgapiserver
+        WSGIDaemonProcess fgapiserver user=$FGAPISERVER_HOSTUNAME group=$FGAPISERVER_HOSTUNAME processes=2 threads=5 home=$HOME/$FGAPISERVER_GITREPO
+        WSGIProcessGroup fgapiserver
+        WSGIScriptAlias /fgapiserver $HOME/$FGAPISERVER_GITREPO/fgapiserver.wsgi
+        <Directory $HOME/$FGAPISERVER_GITREPO>
+                WSGIProcessGroup fgapiserver
+                WSGIApplicationGroup %{GLOBAL}
+                Order deny,allow
+                Allow from all
+                Options All
+                AllowOverride All
+                Require all granted
+        </Directory>
+    </VirtualHost>
+</IfModule>
+EOF
+        sudo chmod o-w /etc/apache2//users/$FGAPISERVER_HOSTUNAME.conf 
+        sudo /usr/sbin/apachectl restart
    else
        out "Configuring fgAPIServer for stand-alone execution ..."
        CURRDIR=$(pwd)
@@ -178,8 +232,11 @@ if [ $RES -eq 0 ]; then
 	<dict>
 		<key>Label</key>
 		<string>it.infn.ct.fgAPIServer</string>
+		<key>ProgramArguments</key>
+		<array>
+			<string>$CURRDIR/$FGAPISERVER_GITREPO/fgapiserver.py</string>
+		</array>
 		<key>Program</key>
-		<string>$CURRDIR/$FGAPISERVER_GITREPO/fgapiserver.py</string>
 		<key>KeepAlive</key>
 		<true/>
 		<key>UserName</key>
