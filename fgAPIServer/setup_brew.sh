@@ -9,7 +9,7 @@ source .fgprofile/commons
 source .fgprofile/brew_commons
 source .fgprofile/config
 
-FGLOG=fgAPIServer.log
+FGLOG=$HOME/fgAPIServer.log
 ASDB_OPTS="-sN"
 
 # The array above contains any global scope temporaty file
@@ -131,43 +131,11 @@ if [ $RES -ne 0 ]; then
 fi
 out "done ($ASDBVER)" 0 1    
 
-# Environment setup
+# Getting or updading software from Git
+git_clone_or_update "$GIT_BASE" "$FGAPISERVER_GITREPO" "$FGAPISERVER_GITTAG"
+RES=$?
 if [ $RES -eq 0 ]; then
-   out "Extracting software ..."
-   out "Checking for git command ..." 1
-   GIT=$(which git)
-    if [ "$GIT" = "" ]; then
-      out "failed" 0 1 
-      out "Did not find git command"
-      exit 1
-    fi
-    out "done ($GIT)" 0 1
-    
-    if [ -d $FGAPISERVER_GITREPO ]; then
-      out "Repository exists!"
-      cd $FGAPISERVER_GITREPO
-      git pull origin $FGAPISERVER_GITTAG
-      RES=$?
-      if [ $RES -ne 0 ]; then
-          out "Unable to pull $FGAPISERVER_GITREPO sources"
-          exit 1
-      else
-          out "Reposiroty successfully pulled"
-      fi
-      cd - 2>/dev/null >/dev/null
-    else
-      out "Cloning from: $GIT_BASE/$FGAPISERVER_GITREPO tag/branch: $FGAPISERVER_GITTAG"
-      $GIT clone -b $FGAPISERVER_GITTAG $GIT_BASE/$FGAPISERVER_GITREPO.git
-      RES=$?
-      if [ $RES -ne 0 ]; then
-          out "Unable to clone '"$FGAPISERVER_GITREPO"'"
-          exit 1
-      fi
-      cd $FGAPISERVER_GITREPO
-      # Add execution rights to fgAPIServer, wsgi execution and PTV and TOSCA simulator
-      chmod +x fgapiserver.py fgapiserver.wsgi fgapiserver_ptv.py
-      cd - 2>/dev/null >/dev/null
-    fi
+   out "ERROR: Unable to clone or update repository: \"FGAPISERVER_GITREPO\""
 fi 
 
 # Environment setup
@@ -181,7 +149,7 @@ if [ $RES -eq 0 ]; then
    if [ $FGAPISERVER_WSGI -ne 0 ]; then
        out "Configuring fgAPIServer for wsgi ..."
        
-       # Stop and remove fixed agent if it exists
+       # Stop and remove stand-alone agent if it exists
        if [ -f /Library/LaunchDaemons/it.infn.ct.fgAPIServer.plist ]; then
            sudo launchctl stop it.infn.ct.fgAPIServer
            sudo launchctl remove it.infn.ct.fgAPIServer
@@ -245,6 +213,9 @@ EOF
 </plist>
 EOF
        # Executing fgAPIServer service
+       # In case switching from wsgi to stand-alone
+       [ -f /etc/apache2/other/fgapiserver.conf ] && sudo /usr/sbin/apachectl restart
+       # Setup stand-alone mode
        sudo chown root:wheel /Library/LaunchDaemons
        sudo chmod g-w /Library/LaunchDaemons
        sudo chown root /Library/LaunchDaemons/it.infn.ct.fgAPIServer.plist
@@ -289,6 +260,7 @@ EOF
    replace_line fgapiserver.conf "fgapisrv_db_pass" "fgapisrv_db_pass = \"$FGDB_PASSWD\""
    replace_line fgapiserver.conf "fgapisrv_db_host" "fgapisrv_db_host = \"$FGDB_HOST\""
    replace_line fgapiserver.conf "fgapisrv_db_name" "fgapisrv_db_name = \"$FGDB_HOST\""
+   replace_line fgapiserver.conf "fgapisrv_dbver" "fgapisrv_dbver = \"$ASDBVER\""
    replace_line fgapiserver.conf "fgapisrv_geappid" "fgapisrv_geappid = \"$UTDB_FGAPPID\""
    replace_line fgapiserver.conf "fgapiver" "fgapiver = \"$FGAPISERVER_APIVER\""
    replace_line fgapiserver.conf "fgapisrv_notoken" "fgapisrv_notoken = \"$FGAPISERVER_NOTOKEN\""

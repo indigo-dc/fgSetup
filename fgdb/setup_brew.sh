@@ -108,39 +108,11 @@ if [ $RES -eq 0 ]; then
     out "done" 0 1    
 fi
 
-# Environment setup
+# Getting or updading software from Git (database in fgAPIServer repo)
+git_clone_or_update "$GIT_BASE" "$FGAPISERVER_GITREPO" "$FGAPISERVER_GITTAG"
+RES=$?
 if [ $RES -eq 0 ]; then
-   out "Extracting software ..."
-   out "Checking for git command ..." 1
-   GIT=$(which git)
-    if [ "$GIT" = "" ]; then
-      out "failed" 0 1 
-      out "Did not find git command"
-      exit 1
-    fi
-    out "done ($GIT)" 0 1
-    
-    if [ -d $FGDB_GITREPO ]; then
-      out "Repository exists!"
-      cd $FGDB_GITREPO
-      git pull origin $FGDB_GITTAG
-      RES=$?
-      if [ $RES -ne 0 ]; then
-          out "Unable to pull $FGDB_GITREPO sources"
-          exit 1
-      else
-          out "Reposiroty successfully pulled"
-      fi
-      cd - 2>/dev/null >/dev/null
-    else
-      out "Cloning from: $GIT_BASE/$FGDB_GITREPO tag/branch: $FGDB_GITTAG"
-      $GIT clone -b $FGDB_GITTAG $GIT_BASE/$FGDB_GITREPO.git
-      RES=$?
-      if [ $RES -ne 0 ]; then
-          out "Unable to clone '"$FGDB_GITREPO"'"
-          exit 1
-      fi
-    fi
+   out "ERROR: Unable to clone or update repository: \"FGAPISERVER_GITREPO\""
 fi 
 
 # Environment setup

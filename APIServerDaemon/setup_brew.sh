@@ -9,7 +9,7 @@ source .fgprofile/commons
 source .fgprofile/brew_commons
 source .fgprofile/config
 
-FGLOG=fgAPIServer.log
+FGLOG=$HOME/APIServerDaemon.log
 ASDB_OPTS="-sN"
 
 # The array above contains any global scope temporaty file
@@ -56,7 +56,7 @@ if [ "$BREW" = "" ]; then
   out "Did not find brew package manager"
   exit 1
 fi
-out "Brew is on: '"$BREW"'"
+out "Brew is on: \"$BREW\""
 
 out "Installing packages ..."
 
@@ -67,8 +67,54 @@ BREWPACKAGES=(
   coreutils
   jq
   mysql
+  ant
+  maven
+  tomcat
 )
+for pkg in ${BREWPACKAGES[@]}; do    
+    install_brew "$pkg"     
+done
 
+# APIServerDaemon requires JAVA, but no installation procedure is actually included
+# so that JDK us considered a necessary condition to run this script
+# Java can be installed with:
+#     brew cask install java
+# The command above requires the user password
+# Java may also installed via standard Oracle procedures
+
+#
+# Checking packages consistency
+#
+
+# Check mandatory command line commands
+MISSING_PKGS=""
+GIT=$(which git || $MISSING_PKGS=$MISSING_PKGS"git ")
+ANT=$(which ant || $MISSING_PKGS=$MISSING_PKGS"ant ")
+MVN=$(which mvn || $MISSING_PKGS=$MISSING_PKGS"mvn ")
+CATALINA=$(which catalina || $MISSING_PKGS=$MISSING_PKGS"catalina ")
+JAVA=$(which java || $MISSING_PKGS=$MISSING_PKGS"java ")
+if [ "$MISSING_PKGS" != "" ]; then
+  out "ERROR: Following mandatory commands are not present: \"$MISSING_PKGS\""
+  exit 1
+fi
+
+# Check Java v >= 1.6.0
+JAVA_VER=$(java -version 2>&1| grep version | awk '{ print $3 }' | xargs echo | awk -F"_" '{ print $1 }' | tr -d '.')
+if [ "$JAVA_VER" -lt 160 ]; then
+  out "ERROR: Unsupported java version; $JAVA_VER (>= 1.6.0)"
+  exit 1
+fi
+
+# Check catalina (Tomcat)
+CATALINA_BASE=$(catalina version | grep CATALINA_BASE | awk -F":" '{ print $2 }' | xargs echo )
+CATALINA_HOME=$(catalina version | grep CATALINA_HOME| awk -F":" '{ print $2 }' | xargs echo )
+export CATALINA_BASE
+export CATALINA_HOME
+
+if [ "$CATALINA_BASE" = "" -o "$CATALINA_HOME" = "" ]; then
+  out "ERROR: Did not find Tomcat environment variables CATALINA_HOME or CATALINA_BASE"
+  exit 1
+fi
     
 # Check mysql client
 out "Looking up mysql client ... " 1
@@ -91,58 +137,142 @@ if [ $RES -ne 0 ]; then
 fi
 out "done ($ASDBVER)" 0 1    
 
-# Environment setup
-if [ $RES -eq 0 ]; then
-    out "Extracting software ..."
-    out "Checking for git command ..." 1
-    GIT=$(which git)
-    if [ "$GIT" = "" ]; then
-      out "failed" 0 1 
-      out "Did not find git command"
-      exit 1
-    fi
-    out "done ($GIT)" 0 1
-    
-    if [ -d $APISERVERDAEMON_GITREPO ]; then
-      out "Repository exists!"
-      cd $APISERVERDAEMON_GITREPO
-      git pull origin $APISERVERDAEMON_GITTAG
-      RES=$?
-      if [ $RES -ne 0 ]; then
-          out "Unable to pull $APISERVERDAEMON_GITREPO sources"
-          exit 1
-      else
-          out "Reposiroty successfully pulled"
-      fi
-      cd - 2>/dev/null >/dev/null
-    else
-      out "Cloning from: $GIT_BASE/$APISERVERDAEMON_GITREPO tag/branch: $APISERVERDAEMON_GITTAG"
-      $GIT clone -b $APISERVERDAEMON_GITTAG $GIT_BASE/$APISERVERDAEMON_GITREPO.git
-      RES=$?
-      if [ $RES -ne 0 ]; then
-          out "Unable to clone '"$APISERVERDAEMON_GITREPO"'"
-          exit 1
-      fi
-      cd $APISERVERDAEMON_GITREPO
-      cd - 2>/dev/null >/dev/null
-    fi
-    # Get EIs repos
-    # Compile APIServerDaemons and EIs 
-fi 
+#
+# Software packages setup
+#
+
+out "Extracting/installing software ..."
+
+# JSAGA
+# PortalSetup used to install jsaga and its libraries accordingly to the instructions
+# reported on its download page: http://software.in2p3.fr/jsaga/latest-release/download.html
+# Actually the new recommended way to install it is via maven configuring the java project.
+# This installation will perform the new suggested way as reported at:
+# https://indigo-dc.gitbooks.io/jsaga-resource-management/content/deployment.html
+
+# OCCI+(GSI)
+OCCI=$(which occi)
+if [ $OCCI != "" -a -d /etc/grid-security/vomsdir -a -d /etc/vomses/ ]; then
+  out "WARNING: Most probably OCCI client and GSI are already installed; skipping their installation"
+else
+    curl -L http://go.egi.eu/fedcloud.ui | sudo /bin/bash -
+
+    # Now configure VO fedcloud.egi.eu
+    sudo mkdir -p /etc/grid-security/vomsdir/fedcloud.egi.eu
+
+    sudo chmod o+w /etc/grid-security/vomsdir/fedcloud.egi.eu
+    sudo cat > /etc/grid-security/vomsdir/fedcloud.egi.eu/voms1.egee.cesnet.cz.lsc << EOF 
+/DC=org/DC=terena/DC=tcs/OU=Domain Control Validated/CN=voms1.egee.cesnet.cz
+/C=NL/O=TERENA/CN=TERENA eScience SSL CA
+EOF
+    sudo cat > /etc/grid-security/vomsdir/fedcloud.egi.eu/voms2.grid.cesnet.cz << EOF 
+/DC=org/DC=terena/DC=tcs/C=CZ/ST=Hlavni mesto Praha/L=Praha 6/O=CESNET/CN=voms2.grid.cesnet.cz
+/C=NL/ST=Noord-Holland/L=Amsterdam/O=TERENA/CN=TERENA eScience SSL CA 3
+EOF
+    sudo chmod o-w /etc/grid-security/vomsdir/fedcloud.egi.eu
+
+    sudo mkdir -p /etc/vomses
+    sudo chmod o+w /etc/vomses
+    sudo cat >> /etc/vomses/fedcloud.egi.eu << EOF 
+"fedcloud.egi.eu" "voms1.egee.cesnet.cz" "15002" "/DC=org/DC=terena/DC=tcs/OU=Domain Control Validated/CN=voms1.egee.cesnet.cz" "fedcloud.egi.eu" "24"
+"fedcloud.egi.eu" "voms2.grid.cesnet.cz" "15002" "/DC=org/DC=terena/DC=tcs/C=CZ/ST=Hlavni mesto Praha/L=Praha 6/O=CESNET/CN=voms2.grid.cesnet.cz" "fedcloud.egi.eu" "24"
+EOF
+    sudo chmod o-w /etc/vomses
+fi
+
+# Getting or updading software from Git
+MISSING_GITREPO=""
+git_clone_or_update "$GNCENG_GIT_BASE" "$GNCENG_GITREPO" "$GNCENG_GITTAG" || MISSING_GITREPO=$MISSING_GITREPO"$GNCENG_GITREPO "
+git_clone_or_update "$ROCCI_GIT_BASE" "$ROCCI_GITREPO" "$ROCCI_GITTAG" || MISSING_GITREPO=$MISSING_GITREPO"$ROCCI_GITREPO "
+git_clone_or_update "$GIT_BASE" "$APISERVERDAEMON_GITREPO" "$APISERVERDAEMON_GITTAG" || MISSING_GITREPO=$MISSING_GITREPO"$APISERVERDAEMON_GITREPO "
+if [ "$MISSING_GITREPO" != "" ]; then
+  out "ERROR: Following Git repositories failed to clone/update: \"$MISSING_GITREPO\""
+  exit 1
+fi
+
+#
+# Compiling APIServerDaemon components and executor interfaces
+#
+out "Starting APIServerDaemon compilation ... "
+
+# Creting lib/ directory under APIServerDaemon dir
+mkdir -p $APISERVERDAEMON_GITREPO/lib
+
+# Compile EI components and APIServerDaemon
+MISSING_COMPILATION=""
+
+# rOCCI jsaga adaptor for Grid and Cloud Engine
+cd $ROCCI_GITREPO
+ant all || MISSING_COMPILATION=$MISSING_COMPILATION"$ROCCI_GITREPO "
+[ -f dist/$ROCCI_GITREPO.jar ] && cp dist/$ROCCI_GITREPO.jar ../$APISERVERDAEMON_GITREPO/lib/
+cd - 2>&1 >/dev/null
+
+# Grid and Cloud Engine
+cd $GNCENG_GITREPO/grid-and-cloud-engine-threadpool
+mvn install || MISSING_COMPILATION=$MISSING_COMPILATION"$GNCENG_GITREPO "
+GNCENG_THREADPOOL_LIB=$(find . -name '*.jar' | grep grid-and-cloud-engine-threadpool)
+[ -f $GNCENG_THREADPOOL_LIB ] && cp $GNCENG_THREADPOOL_LIB ../../$APISERVERDAEMON_GITREPO/lib/
+cd - 2>&1 >/dev/null
+cd $GNCENG_GITREPO/grid-and-cloud-engine_M
+mvn install || MISSING_COMPILATION=$MISSING_COMPILATION"$GNCENG_GITREPO "
+GNCENG_GNCENG_LIB=$(find . -name '*.jar' | grep grid-and-cloud-engine_M)
+[ -f $GNCENG_GNCENG_LIB ] && cp $GNCENG_GNCENG_LIB ../../$APISERVERDAEMON_GITREPO/lib/
+cd - 2>&1 >/dev/null
+
+# APIServerDaemon configuration
+# Now configure APIServerDaemon accordingly to configuration settings
+out "Configuring APIServerDaemon ... " 1
+cd $APISERVERDAEMON_GITREPO
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbhost" "apisrv_dbhost = $FGDB_HOST"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbport" "apisrv_dbport = 	$FGDB_PORT"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbuser" "apisrv_dbuser = $FGDB_USER"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbuser" "apisrv_dbuser = $FGDB_USER"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbpass" "apisrv_dbpass = $FGDB_PASS"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbname" "apisrv_dbname = $FGDB_NAME"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbver" "apisrv_dbver = $ASDBVER"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "asdMaxThreads" "asdMaxThreads = $APISERVERDAEMON_MAXTHREADS"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "asdCloseTimeout" "asdCloseTimeout = $APISERVERDAEMON_ASDCLOSETIMEOUT"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "gePollingDelay" "gePollingDelay = $APISERVERDAEMON_GEPOLLINGDELAY"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "gePollingMaxCommands" "gePollingMaxCommands = $APISERVERDAEMON_GEPOLLINGMAXCOMMANDS"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "asControllerDelay" "asControllerDelay = $APISERVERDAEMON_ASCONTROLLERDELAY"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "asControllerMaxCommands" "asControllerMaxCommands = $APISERVERDAEMON_ASCONTROLLERMAXCOMMANDS"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "asTaskMaxRetries" "asTaskMaxRetries = $APISERVERDAEMON_ASTASKMAXRETRIES"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "asTaskMaxWait" "asTaskMaxWait = $APISERVERDAEMON_ASTASKMAXWAIT"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "utdb_jndi" "utdb_jndi = $APISERVERDAEMON_UTDB_JNDI"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "utdb_host" "utdb_host = $APISERVERDAEMON_UTDB_HOST"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "utdb_port" "utdb_port = $APISERVERDAEMON_UTDB_PORT"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "utdb_user" "utdb_user = $APISERVERDAEMON_UTDB_USER"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "utdb_pass" "utdb_pass = $APISERVERDAEMON_UTDB_PASS"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "utdb_name" "utdb_name = $APISERVERDAEMON_UTDB_NAME"
+
+
+cd - 2>/dev/null >/dev/null
+out "done" 0 1
+
+# APIServerDaemon
+cd $APISERVERDAEMON_GITREPO
+ant all || MISSING_COMPILATION=$MISSING_COMPILATION"$APISERVERDAEMON_GITREPO "
+[ -f dist/APIServerDaemon.war/$APISERVERDAEMON_GITREPO.war ] && cp dist/APIServerDaemon.war/$APISERVERDAEMON_GITREPO.war $CATALINA_HOME/webapps
+cd - 2>&1 >/dev/null
+if [ "$MISSING_COMPILATION" != "" ]; then
+  out "ERROR: Following components did not compile successfully: \"$MISSING_COMPILATION\""
+  exit 1
+fi
+
+out "Successfully compiled all APIServerDaemon components"
+
 
 # Environment setup
-if [ $RES -eq 0 ]; then
-
-   out "Preparing the environment ..."
+out "Preparing the environment ..."
    
-   # Now take care of environment settings
-   out "Setting up '"$APISERVERDAEMON_HOSTUNAME"' user profile ..."
+# Now take care of environment settings
+out "Setting up \"$APISERVERDAEMON_HOSTUNAME\" user profile ..."
    
-   # Preparing user environment in .fgprofile/APIServerDaemon file
-   #   BGDB variables
-   #   DB macro functions
-   FGAPISERVERENVFILEPATH=.fgprofile/APIServerDaemon
-   cat >$FGAPISERVERENVFILEPATH <<EOF
+# Preparing user environment in .fgprofile/APIServerDaemon file
+#   BGDB variables
+#   DB macro functions
+FGAPISERVERENVFILEPATH=.fgprofile/APIServerDaemon
+cat >$FGAPISERVERENVFILEPATH <<EOF
 #!/bin/bash
 #
 # APIServerDaemon Environment setting configuration file
@@ -151,29 +281,17 @@ if [ $RES -eq 0 ]; then
 #
 # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
 EOF
-   #for vgdbvar in ${FGAPISERVER_VARS[@]}; do
-   #    echo "$vgdbvar=${!vgdbvar}" >> $FGAPISERVERENVFILEPATH
-   #done
-   ## Now place functions from setup_commons.sh
-   #declare -f asdb  >> $FGAPISERVERENVFILEPATH
-   #declare -f asdbr >> $FGAPISERVERENVFILEPATH
-   #declare -f dbcn  >> $FGAPISERVERENVFILEPATH
-   #out "done" 0 1
-   out "User profile successfully created"
+#for vgdbvar in ${FGAPISERVER_VARS[@]}; do
+#    echo "$vgdbvar=${!vgdbvar}" >> $FGAPISERVERENVFILEPATH
+#done
+## Now place functions from setup_commons.sh
+#declare -f asdb  >> $FGAPISERVERENVFILEPATH
+#declare -f asdbr >> $FGAPISERVERENVFILEPATH
+#declare -f dbcn  >> $FGAPISERVERENVFILEPATH
+#out "done" 0 1
+out "User profile successfully created"
    
-   # Now configure fgAPIServer accordingly to configuration settings
-   out "Configuring APIServerDaemon ... " 1
-   cd $HOME/APISERVERDAEMON_GITREPO
-   #replace_line fgapiserver.conf "fgapisrv_host" "fgapisrv_host = \"$FGAPISERVER_HOST\""
-   cd - 2>/dev/null >/dev/null
-   out "done" 0 1
-fi
 
-# Report installation termination
-if [ $RES -ne 0 ]; then
-  OUTMODE="Unsuccesfully"
-else
-  OUTMODE="Successfully"
-fi
-out "$OUTMODE finished FutureGateway APIServerDaemon brew versioned setup script"
+
+out "Successfully finished FutureGateway APIServerDaemon brew versioned setup script"
 exit $RES

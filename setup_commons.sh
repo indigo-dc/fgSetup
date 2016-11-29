@@ -485,3 +485,56 @@ dbcn() {
     RES=$?
     return $RES
 }
+
+# Clone or update a given Git repository; call from the directory that contains the repo
+# dir in case of update
+# $1 Git repository base 'http://github.com/<repobase_name>'
+# $2 Repository name
+# $3 Repository tag/version
+git_clone_or_update() {
+
+	GCO_GITBASE="$1"
+    GCO_GITREPO="$2"
+    GCO_GITTAG="$3"
+     
+    MISSING_PARAMS=""
+    [ "$GCO_GITBASE" = "" ] && MISSING_PARAMS=$MISSING_PARAMS"Git-base "
+    [ "$GCO_GITREPO" = "" ] && MISSING_PARAMS=$MISSING_PARAMS"Git-repository "
+    [ "$GCO_GITTAG" = "" ] && MISSING_PARAMS=$MISSING_PARAMS"Git-tag "
+    if [ "$MISSING_PARAMS" != "" ]; then
+        out "ERROR: Following mandatory parameters are not present: \"$MISSING_PARAMS\""
+        return 1
+    fi
+    
+    GIT=$(which git)
+    if [ "$GIT" = "" ]; then
+        out "ERROR: Mandatory git command line is not present"
+        return 1
+    fi
+    
+    if [ -d $GCO_GITREPO ]; then
+        out "Repository exists!"
+        cd $GCO_GITREPO
+        git pull origin $GCO_GITTAG
+        RES=$?
+        if [ $RES -ne 0 ]; then
+            out "Unable to pull $GCO_GITREPO sources"
+            return 1
+        else
+            out "Reposiroty successfully pulled"
+        fi
+        cd - 2>/dev/null >/dev/null
+    else
+        out "Cloning from: $GCO_GITBASE/$GCO_GITREPO tag/branch: $GCO_GITTAG"
+        $GIT clone -b $GCO_GITTAG $GCO_GITBASE/$GCO_GITREPO.git
+        RES=$?
+        if [ $RES -ne 0 ]; then
+            out "Unable to clone '"$GCO_GITREPO"'"
+            return 1
+        fi
+        #cd $(pwd)/$GCO_GITREPO
+        #cd - 2>/dev/null >/dev/null
+    fi
+    
+    return 0
+}
