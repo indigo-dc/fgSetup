@@ -47,7 +47,7 @@ FGDB_USER=fgapiserver                # Database username
 FGDB_PASSWD=fgapiserver_password     # Database username password
 FGDB_SSHPORT=22                      # Database ssh port number
 FGDB_GITREPO=fgAPIServer             # Database Git repository name
-FGDB_GITTAG="minor_changes"                 # Database Git repository tag/branch name
+FGDB_GITTAG="minor_changes"          # Database Git repository tag/branch name
 
 
 # API front-end
@@ -61,8 +61,8 @@ FGDB_GITTAG="minor_changes"                 # Database Git repository tag/branch
 # fgAPIServer
 # This component requires the following variables
 FGAPISERVER_VARS="FGAPISERVER_SETUP\
-                  FGAPISERVER_HOST\
-                  FGAPISERVER_HOSTUNAME\
+                  FGAPISERVER_APPHOST\
+                  FGAPISERVER_APPHOSTUNAME\
                   FGAPISERVER_PORT\
                   FGAPISERVER_SSHPORT\
                   FGAPISERVER_WSGI\
@@ -77,22 +77,23 @@ FGAPISERVER_VARS="FGAPISERVER_SETUP\
                   FGAPISERVER_PTVMAPFILE\
                   FGAPISERVER_PTVUSER\
                   FGAPISERVER_PTVPASS"
-FGAPISERVER_SETUP=1                  # Enable this flag to setup fgAPIServer
-FGAPISERVER_HOST=0.0.0.0             # fgAPIServer server host address
-FGAPISERVER_HOSTUNAME=futuregateway  # fgAPIServer host username 
-FGAPISERVER_PORT=8888                # fgAPIServer port number (no WSGI)
-FGAPISERVER_SSHPORT=22               # fgAPIServer ssh port number
-FGAPISERVER_WSGI=1                   # 0 turn off WSGI configuration (apache)
-FGAPISERVER_GITREPO=fgAPIServer      # fgAPIServer Git repository name
-FGAPISERVER_GITTAG="master"          # fgAPIServer Git repository tag/branch name
-FGAPISERVER_IOPATH=/tmp              # fgAPIServer I/O sandbox directory
-FGAPISERVER_APIVER=1.0               # FutureGateway API version implemented
-FGAPISERVER_DEBUG=True               # Enable/Disable fgAPIServer debug mode
-FGAPISERVER_NOTOKEN=False            # Enable/Disable token mechanism
-FGAPISERVER_PTVFLAG=True             # Enable/Disable PTV (token mode on)
-FGAPISERVER_PTVUSER="tokenver_user"  # PTV HTTP access service username
-FGAPISERVER_PTVPASS="tokenver_pass"  # PTV HTTP service password
-FGAPISERVER_PTVENDPOINT="http://localhost:8889/checktoken" 
+FGAPISERVER_SETUP=1                     # Enable this flag to setup fgAPIServer
+FGAPISERVER_HOST=127.0.0.1              # fgAPIServer server host address
+FGAPISERVER_APPHOST=0.0.0.0             # fgAPIServer server host address
+FGAPISERVER_APPHOSTUNAME=futuregateway  # fgAPIServer host username 
+FGAPISERVER_PORT=8888                   # fgAPIServer port number (no WSGI)
+FGAPISERVER_SSHPORT=22                  # fgAPIServer ssh port number
+FGAPISERVER_WSGI=1                      # 0 turn off WSGI configuration (apache)
+FGAPISERVER_GITREPO=fgAPIServer         # fgAPIServer Git repository name
+FGAPISERVER_GITTAG="master"             # fgAPIServer Git repository tag/branch name
+FGAPISERVER_IOPATH=/tmp                 # fgAPIServer I/O sandbox directory
+FGAPISERVER_APIVER=1.0                  # FutureGateway API version implemented
+FGAPISERVER_DEBUG=True                  # Enable/Disable fgAPIServer debug mode
+FGAPISERVER_NOTOKEN=False               # Enable/Disable token mechanism
+FGAPISERVER_PTVFLAG=True                # Enable/Disable PTV (token mode on)
+FGAPISERVER_PTVUSER="tokenver_user"     # PTV HTTP access service username
+FGAPISERVER_PTVPASS="tokenver_pass"     # PTV HTTP service password
+FGAPISERVER_PTVENDPOINT="http://$FGAPISERVER_HOST:8889/checktoken" 
 FGAPISERVER_PTVMAPFILE="fgapiserver_ptvmap.json"
 
 # APIServer
@@ -112,7 +113,46 @@ APISERVERDAEMON_ENVS="APISERVERDAEMON_SETUP\
                       APISERVERDAEMON_PORT\
                       APISERVERDAEMON_SSHPORT\
                       APISERVERDAEMON_GITREPO\
-                      APISERVERDAEMON_GITTAG"
+                      APISERVERDAEMON_GITTAG\
+                      UTDB_FGAPPID\
+                      UTDB_HOST\
+                      UTDB_HOSTUNAME\
+                      UTDB_PORT\
+                      UTDB_NAME\
+                      UTDB_ROOTPWD\
+                      UTDB_USER\
+                      UTDB_PASSWD\
+                      ROCCI_GIT_HOST\
+                      ROCCI_GIT_RAWHOST\
+                      ROCCI_GIT_REPO\
+                      ROCCI_GIT_BASE\
+                      ROCCI_GIT_BASERAW\
+                      ROCCI_GITREPO\
+                      ROCCI_GITTAG\
+                      GNCENG_GIT_HOST\
+                      GNCENG_GIT_RAWHOST\
+                      GNCENG_GIT_REPO\
+                      GNCENG_GIT_BASE\
+                      GNCENG_GIT_BASERAW\
+                      GNCENG_GITREPO\
+                      GNCENG_GITTAG\
+                      APISERVERDAEMON_MAXTHREADS\
+                      APISERVERDAEMON_ASDCLOSETIMEOUT\
+                      APISERVERDAEMON_GEPOLLINGDELAY\
+                      APISERVERDAEMON_GEPOLLINGMAXCOMMANDS\
+                      APISERVERDAEMON_ASCONTROLLERDELAY\
+                      APISERVERDAEMON_ASCONTROLLERMAXCOMMANDS\
+                      APISERVERDAEMON_ASTASKMAXRETRIES\
+                      APISERVERDAEMON_ASTASKMAXWAIT\
+                      APISERVERDAEMON_UTDB_JNDI\
+                      APISERVERDAEMON_UTDB_HOST\
+                      APISERVERDAEMON_UTDB_PORT\
+                      APISERVERDAEMON_UTDB_USER\
+                      APISERVERDAEMON_UTDB_PASS\
+                      APISERVERDAEMON_UTDB_NAME\
+                      TOSCAIDC_FGAPISRV_PTVENDPOINT\
+                      TOSCAIDC_FGAPISRV_PTVUSER\
+                      TOSCAIDC_FGAPISRV_PTVPASS"
 APISERVERDAEMON_SETUP=1                 # Enable this flag to setup APIServerDaemon
 APISERVERDAEMON_HOST=127.0.0.1          # APIServerDaemon host address
 APISERVERDAEMON_HOSTUNAME=futuregateway # APIServerDaemon host username
@@ -154,6 +194,7 @@ GNCENG_GITREPO="grid-and-cloud-engine"
 GNCENG_GITTAG="FutureGateway"
 
 # APIServerDaemon configuration settings
+# APIServerDaemon/web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties
 APISERVERDAEMON_MAXTHREADS=100                  # Maximum number of threads Action/Control queues
 APISERVERDAEMON_ASDCLOSETIMEOUT=20              # Waiting timeout before kill thread pools
 APISERVERDAEMON_GEPOLLINGDELAY=4000             # Action polling interval
@@ -168,6 +209,13 @@ APISERVERDAEMON_UTDB_PORT=$UTDB_PORT            # UsersTracking database port
 APISERVERDAEMON_UTDB_USER=$UTDB_USER            # UsersTracking database user
 APISERVERDAEMON_UTDB_PASS=$UTDB_PASSWD          # UsersTracking database password
 APISERVERDAEMON_UTDB_NAME=$UTDB_NAME            # UsersTracking database name
+
+# ToscaIDC EI
+# APIServerDaemon/web/WEB-INF/classes/it/infn/ct/ToscaIDC.properties
+# Settings below are valid for baseline tester PTV service: fgapiserver_ptv.py
+TOSCAIDC_FGAPISRV_PTVENDPOINT=$FGAPISERVER_PTVENDPOINT # PTV service Endpoint
+TOSCAIDC_FGAPISRV_PTVUSER=$FGAPISERVER_PTVUSER         # PTV access username
+TOSCAIDC_FGAPISRV_PTVPASS=$FGAPISERVER_PTVPASS         # PTV access password
 
 # FGPortal
 #

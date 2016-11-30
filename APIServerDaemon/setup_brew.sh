@@ -49,7 +49,7 @@ out "Verifying package manager and APIServerDaemon user ..."
 check_and_setup_brew
 
 # Check for FutureGateway fgAPIServer unix user
-check_and_create_user $FGAPISERVER_HOSTUNAME
+check_and_create_user $FGAPISERVER_APPHOSTUNAME
 
 # Mandatory packages installation
 if [ "$BREW" = "" ]; then
@@ -106,12 +106,12 @@ if [ "$JAVA_VER" -lt 160 ]; then
 fi
 
 # Check catalina (Tomcat)
-CATALINA_BASE=$(catalina version | grep CATALINA_BASE | awk -F":" '{ print $2 }' | xargs echo )
-CATALINA_HOME=$(catalina version | grep CATALINA_HOME| awk -F":" '{ print $2 }' | xargs echo )
-export CATALINA_BASE
-export CATALINA_HOME
-
-if [ "$CATALINA_BASE" = "" -o "$CATALINA_HOME" = "" ]; then
+CATALINA=$(brew ls tomcat | grep "catalina.sh")
+export CATALINA_HOME=$($CATALINA version | grep CATALINA_HOME| awk -F":" '{ print $2 }' | xargs echo )
+export CATALINA_BASE=$($CATALINA version | grep CATALINA_BASE | awk -F":" '{ print $2 }' | xargs echo )
+out "CATALINA_HOME=$CATALINA_HOME"
+out "CATALINA_BASE=$CATALINA_BASE"
+if [ "$CATALINA_HOME" = "" -o "$CATALINA_BASE" = "" ]; then
   out "ERROR: Did not find Tomcat environment variables CATALINA_HOME or CATALINA_BASE"
   exit 1
 fi
@@ -193,7 +193,7 @@ fi
 #
 # Compiling APIServerDaemon components and executor interfaces
 #
-out "Starting APIServerDaemon compilation ... "
+out "Starting APIServerDaemon components compilation ... "
 
 # Creting lib/ directory under APIServerDaemon dir
 mkdir -p $APISERVERDAEMON_GITREPO/lib
@@ -223,6 +223,7 @@ cd - 2>&1 >/dev/null
 # Now configure APIServerDaemon accordingly to configuration settings
 out "Configuring APIServerDaemon ... " 1
 cd $APISERVERDAEMON_GITREPO
+# APIServerDaemon.properties
 replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbhost" "apisrv_dbhost = $FGDB_HOST"
 replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbport" "apisrv_dbport = 	$FGDB_PORT"
 replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbuser" "apisrv_dbuser = $FGDB_USER"
@@ -244,8 +245,10 @@ replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "utdb_p
 replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "utdb_user" "utdb_user = $APISERVERDAEMON_UTDB_USER"
 replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "utdb_pass" "utdb_pass = $APISERVERDAEMON_UTDB_PASS"
 replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "utdb_name" "utdb_name = $APISERVERDAEMON_UTDB_NAME"
-
-
+# ToscaIDC.properties
+replace_line ./web/WEB-INF/classes/it/infn/ct/ToscaIDC.properties "fgapisrv_ptvendpoint" "fgapisrv_ptvendpoint = $TOSCAIDC_FGAPISRV_PTVENDPOINT"
+replace_line ./web/WEB-INF/classes/it/infn/ct/ToscaIDC.properties "fgapisrv_ptvuser" "fgapisrv_ptvuser = $TOSCAIDC_FGAPISRV_PTVUSER"
+replace_line ./web/WEB-INF/classes/it/infn/ct/ToscaIDC.properties "fgapisrv_ptvpass" "fgapisrv_ptvpass = $TOSCAIDC_FGAPISRV_PTVPASS"
 cd - 2>/dev/null >/dev/null
 out "done" 0 1
 

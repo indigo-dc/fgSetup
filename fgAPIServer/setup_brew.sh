@@ -49,7 +49,7 @@ out "Verifying package manager and fgAPIServer user ..."
 check_and_setup_brew
 
 # Check for FutureGateway fgAPIServer unix user
-check_and_create_user $FGAPISERVER_HOSTUNAME
+check_and_create_user $FGAPISERVER_APPHOSTUNAME
 
 # Mandatory packages installation
 if [ "$BREW" = "" ]; then
@@ -134,8 +134,9 @@ out "done ($ASDBVER)" 0 1
 # Getting or updading software from Git
 git_clone_or_update "$GIT_BASE" "$FGAPISERVER_GITREPO" "$FGAPISERVER_GITTAG"
 RES=$?
-if [ $RES -eq 0 ]; then
-   out "ERROR: Unable to clone or update repository: \"FGAPISERVER_GITREPO\""
+if [ $RES -ne 0 ]; then
+   out "ERROR: Unable to clone or update repository: \"$FGAPISERVER_GITREPO\""
+   exit 1
 fi 
 
 # Environment setup
@@ -167,7 +168,7 @@ LoadModule wsgi_module $MOD_WSGI
 <IfModule wsgi_module>
     <VirtualHost *:80>
         ServerName fgapiserver
-        WSGIDaemonProcess fgapiserver user=$FGAPISERVER_HOSTUNAME group=Admin processes=2 threads=5 home=$HOME/$FGAPISERVER_GITREPO python-path=$MYSQLPYPATH
+        WSGIDaemonProcess fgapiserver user=$FGAPISERVER_APPHOSTUNAME group=Admin processes=2 threads=5 home=$HOME/$FGAPISERVER_GITREPO python-path=$MYSQLPYPATH
         WSGIProcessGroup fgapiserver
         WSGIScriptAlias /fgapiserver $HOME/$FGAPISERVER_GITREPO/fgapiserver.wsgi
         <Directory $HOME/$FGAPISERVER_GITREPO>
@@ -206,7 +207,7 @@ EOF
 		<key>KeepAlive</key>
 		<true/>
 		<key>UserName</key>
-		<string>$FGAPISERVER_HOSTUNAME</string>
+		<string>$FGAPISERVER_APPHOSTUNAME</string>
 		<key>WorkingDirectory</key>
 		<string>$CURRDIR/$FGAPISERVER_GITREPO</string>
 	</dict>
@@ -224,7 +225,7 @@ EOF
        sudo launchctl load -w /Library/LaunchDaemons/it.infn.ct.fgAPIServer.plist
    fi
    # Now take care of environment settings
-   out "Setting up '"$FGAPISERVER_HOSTUNAME"' user profile ..."
+   out "Setting up '"$FGAPISERVER_APPHOSTUNAME"' user profile ..."
    
    # Preparing user environment in .fgprofile/APIServerDaemon file
    #   BGDB variables
@@ -233,9 +234,9 @@ EOF
    cat >$FGAPISERVERENVFILEPATH <<EOF
 #!/bin/bash
 #
-# APIServerDaemon Environment setting configuration file
+# fgAPIServer Environment setting configuration file
 #
-# Very specific APIServerDaemon service components environment must be set here
+# Very specific fgAPIServer service components environment must be set here
 #
 # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
 EOF
@@ -252,7 +253,7 @@ EOF
    # Now configure fgAPIServer accordingly to configuration settings
    out "Configuring fgAPIServer ... " 1
    cd $HOME/$FGAPISERVER_GITREPO
-   replace_line fgapiserver.conf "fgapisrv_host" "fgapisrv_host = \"$FGAPISERVER_HOST\""
+   replace_line fgapiserver.conf "fgapisrv_host" "fgapisrv_host = \"$FGAPISERVER_APPHOST\""
    replace_line fgapiserver.conf "fgapisrv_debug" "fgapisrv_debug = \"$FGAPISERVER_DEBUG\""
    replace_line fgapiserver.conf "fgapisrv_port" "fgapisrv_port = \"$FGAPISERVER_PORT\""
    replace_line fgapiserver.conf "fgapisrv_iosandbox" "fgapisrv_iosandbox = \"$FGAPISERVER_IOPATH\""

@@ -9,7 +9,7 @@ source .fgprofile/commons
 source .fgprofile/brew_commons
 source .fgprofile/config
 
-FGLOG=fgdb.log
+FGLOG=$HOME/fgdb.log
 
 # The array above contains any global scope temporaty file
 TEMP_FILES=() 
@@ -111,8 +111,9 @@ fi
 # Getting or updading software from Git (database in fgAPIServer repo)
 git_clone_or_update "$GIT_BASE" "$FGAPISERVER_GITREPO" "$FGAPISERVER_GITTAG"
 RES=$?
-if [ $RES -eq 0 ]; then
-   out "ERROR: Unable to clone or update repository: \"FGAPISERVER_GITREPO\""
+if [ $RES -ne 0 ]; then
+   out "ERROR: Unable to clone or update repository: \"$FGAPISERVER_GITREPO\""
+   exit 1
 fi 
 
 # Environment setup

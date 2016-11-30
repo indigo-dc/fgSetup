@@ -257,7 +257,7 @@ setsrvsshvars() {
         ;;
         'fgAPIServer')
             SSH_HOST=$FGAPISERVER_HOST       
-            SSH_USER=$FGAPISERVER_HOSTUNAME
+            SSH_USER=$FGAPISERVER_APPHOSTUNAME
             SSH_PORT=$FGAPISERVER_SSHPORT
         ;;
         'APIServerDaemon')
