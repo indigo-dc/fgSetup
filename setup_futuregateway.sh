@@ -29,8 +29,8 @@ cleanup_tempFiles() {
   echo "Cleaning temporary files:"
   for tempfile in ${TEMP_FILES[@]}
   do
-    echo "Viewing '"$tempfile"':"
-    cat $tempfile
+    #echo "Viewing '"$tempfile"':"
+    #cat $tempfile
     printf "Cleaning up '"$tempfile"' ... "
     rm -rf $tempfile
     echo "done"
@@ -58,7 +58,7 @@ setup_PreRequisites() {
     
     # Check for mysql client
     MYSQL=$(which mysql)
-    if [ "$SSH" = "" ]; then
+    if [ "$MYSQL" = "" ]; then
       echo "This installation script requires mysql client to run"
       echo "Please contact your system administrator to install it"
       return 1
@@ -146,8 +146,8 @@ EOF
 	     out "Checking '"$SETUP_SERVICE"' passwordless sudo ... " 1 &&   
 	         ssh_command $SETUP_SERVICE "sudo -n true" $SSH_OUT $SSH_ERR && 
 	         out "passed" 0 1 &&
-	     out "Determining '"$SETUP_SERVICE"' package manager ... " 1 &&
-	         ssh_command $SETUP_SERVICE "/bin/bash -x \"which apt-get || which yum || ([ \"\$(uname -s)\" = \"Darwin\" ] && echo \"brew\") || echo unsupported\"" $SSH_OUT $SSH_ERR &&
+	     out "Determining '"$SETUP_SERVICE"' package manager ... " 1 &&	         
+	         ssh_command $SETUP_SERVICE "which apt-get || which yum || ([ \"\$(uname -s)\" = \"Darwin\" ] && echo \"brew\") || echo \"unsupported\"" $SSH_OUT $SSH_ERR "-n -o \"StrictHostKeyChecking no\" -o \"BatchMode=yes\"" &&
 	         PKGMGR=$(cat $SSH_OUT) &&
 	         out "passed ("$PKGMGR")" 0 1 &&
              echo $SETUP_SERVICE" "$(cat $SSH_OUT) >> $SERVICE_PKGMGR &&

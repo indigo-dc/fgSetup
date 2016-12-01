@@ -106,7 +106,10 @@ if [ "$JAVA_VER" -lt 160 ]; then
 fi
 
 # Check catalina (Tomcat)
-CATALINA=$(brew ls tomcat | grep "catalina.sh")
+# Catalina contains a check on tty avoiding output when this command returns 1 (not a tty)
+# The following call cheats the tty command
+ORIG_PATH=$PATH
+echo "exit 0">tty; chmod +x tty; export PATH=.:$PATH\"
 export CATALINA_HOME=$($CATALINA version | grep CATALINA_HOME| awk -F":" '{ print $2 }' | xargs echo )
 export CATALINA_BASE=$($CATALINA version | grep CATALINA_BASE | awk -F":" '{ print $2 }' | xargs echo )
 out "CATALINA_HOME=$CATALINA_HOME"
@@ -115,6 +118,9 @@ if [ "$CATALINA_HOME" = "" -o "$CATALINA_BASE" = "" ]; then
   out "ERROR: Did not find Tomcat environment variables CATALINA_HOME or CATALINA_BASE"
   exit 1
 fi
+# Reset the tty command to the original behavior
+rm -f ./tty
+export PATH=$ORIG_PATH
     
 # Check mysql client
 out "Looking up mysql client ... " 1

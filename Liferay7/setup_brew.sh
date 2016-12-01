@@ -8,9 +8,9 @@
 source .fgprofile/commons
 source .fgprofile/config
 
-FGLOG=Liferay7.log
+FGLOG=$HOME/Liferay7.log
 
 out "Starting FutureGateway Liferay7 brew versioned setup script"
-
+out "Sorry, this script is not yet implemented"
 out "Finished FutureGateway Liferay7 brew versioned setup script"
 

@@ -20,9 +20,9 @@ out() {
 
   # Prepare output flags
   OUTCMD=echo
-  MESSAGE=$1
-  NONEWLINE=$2
-  NOTIMESTAMP=$3 
+  MESSAGE="$1"
+  NONEWLINE="$2"
+  NOTIMESTAMP="$3" 
   if [ "$NONEWLINE" != "" -a $((1*NONEWLINE)) -ne 0 ]; then
     OUTCMD=printf
   fi
@@ -297,15 +297,17 @@ setsrvsshvars() {
 # $2 - The command to execute
 # $3 - The SSH std-out (/dev/null default)
 # $4 - The SSH std-err (/dev/null default)
+# $5 - SSH opts
 ssh_command() {
     RES=0
-    FGCOMPONENT=$1
-    SSHCOMMAND=$2
+    FGCOMPONENT="$1"
+    SSHCOMMAND="$2"
     SSHOUT=/dev/null
     SSHERR=/dev/null
-    [ "$3" != "" ] && SSHOUT=$3
-    [ "$4" != "" ] && SSHERR=$4
-    SSHOPTS="-n -o \"StrictHostKeyChecking no\" -o \"BatchMode=yes\""
+    [ "$3" != "" ] && SSHOUT="$3"
+    [ "$4" != "" ] && SSHERR="$4"
+    [ "$5" != "" ] && SSHOPTS="$5" ||\
+                      SSHOPTS="-n -o \"StrictHostKeyChecking no\" -o \"BatchMode=yes\""    
     if [ "$SSH" = "" ]; then
       SSH=$(which ssh)
       if [ "$SSH" = "" ]; then
@@ -320,7 +322,7 @@ ssh_command() {
     [ $RES -eq 0 ] || exit 1
     
     # Execute SSH command
-    CMD="$SSH $SSHOPTS -l $SSH_USER $SSH_HOST -p $SSH_PORT \"$SSHCOMMAND\""
+    CMD="$SSH ""$SSHOPTS"" -l $SSH_USER $SSH_HOST -p $SSH_PORT \"$SSHCOMMAND\""
 	#out "$CMD" 1 1
 	eval $CMD 2>$SSHERR >$SSHOUT
 	RES=$?
