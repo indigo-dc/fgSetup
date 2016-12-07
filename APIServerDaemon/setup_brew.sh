@@ -231,7 +231,7 @@ out "Configuring APIServerDaemon ... " 1
 cd $APISERVERDAEMON_GITREPO
 # APIServerDaemon.properties
 replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbhost" "apisrv_dbhost = $FGDB_HOST"
-replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbport" "apisrv_dbport = 	$FGDB_PORT"
+replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbport" "apisrv_dbport = $FGDB_PORT"
 replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbuser" "apisrv_dbuser = $FGDB_USER"
 replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbuser" "apisrv_dbuser = $FGDB_USER"
 replace_line ./web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties "apisrv_dbpass" "apisrv_dbpass = $FGDB_PASS"
