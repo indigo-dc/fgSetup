@@ -8,3 +8,13 @@ fgtest
 
 [APIServerDaemon]
 fgtest
+
+[Liferay62]
+fgtest
+
+[Liferay7]
+fgtest
+
+[LiferayIAM]
+fgtest
+

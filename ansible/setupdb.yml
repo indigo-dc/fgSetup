@@ -49,9 +49,31 @@
                 login_user=root
                 login_password={{ mysql_root_password }}
                 target=/tmp/fgapiserver_db.sql
-    # ASDB - environment setting and configuration
-    - name: ASDBEnv | APIServer database environment
-      file: path={{ inventory_hostname }}/.fgprofile state=directory owner={{ fg_user }} group={{ fg_user }} mode=0775 recurse=yes
+    # Environment directory 
+    - name: EnvDir | Environment settings 
+      file: path=/home/{{ fg_user }}/.fgprofile state=directory owner={{ fg_user }} group={{ fg_user }} mode=0775 recurse=yes
+    # Commons environment
+    - name: EnvCommon | FutureGateway commons environment settings
+      copy: src=/home/{{ fg_user }}/fgSetup/setup_commons.sh
+            dest=/home/{{ fg_user }}/.fgprofile/commons
+            owner={{ fg_user }}
+            group={{ fg_user }}
+            mode=0644
+    # Load main environment settings
+    - name: EnvMain | Main environment setting loader
+      copy: content={{ fg_loadconf }}
+            dest=/home/{{ fg_user }}/.fgprofile/fgdb
+            owner={{ fg_user }}
+            group={{ fg_user }}
+            mode=0644
+    # Load FutureGateway profile components in bash_profile file
+    - name: EnvProfile | Insert load profile line in .profile file
+      blockinfile: block="for f in $(find $HOME/.fgprofile -type f); do source $f; done {{ '#' }} FGLOADENV"
+                   create=yes
+                   dest=/home/{{ fg_user }}/.profile
+                   owner={{ fg_user }}
+                   group={{ fg_user }}
+                   mode=0644
     # Cleanup unnecessary and temporary stuff
     - name: Cleanup | Clean unnecessary and temporary stuff
       file: path=/tmp/fgapiserver_db.sql state=absent

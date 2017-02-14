@@ -10,7 +10,23 @@ fg_fgSetup_gitver: master
 fg_user: futuregateway
 fg_pass: futuregateway
 
-#FutureGateway DB settings
+# FutureGateway DB settings
 fg_db_name: fgapiserver
 fg_db_user: fgapiserver 
 fg_db_password: fgapiserver_password
+
+# FutureGateway' fgdb  configuration script 
+fg_loadconf: |
+             #!/bin/bash
+             #
+             # fgdb Environment setting configuration file
+             #
+             # Very specific FGDB service components environment must be set here
+             #
+             # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+             export FGDB_HOST={{ inventory_hostname }}
+             export FGDB_PORT={{ mysql_port }}
+             export FGDB_USER={{ fg_db_user }}
+             export FGDB_PASSWD={{ fg_db_password }}
+             export FGDB_NAME={{ fg_db_name }}
+             export ASDB_OPTS=''
