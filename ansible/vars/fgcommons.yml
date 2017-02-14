@@ -1,0 +1,16 @@
+# Common FutureGateway configurable values are placed here
+
+# FutureGateway repositories settings
+fg_fgAPIServer_git: https://github.com/indigo-dc/fgAPIServer.git
+fg_fgAPIServer_gitver: v0.0.6-a
+fg_fgSetup_git: https://github.com/indigo-dc/fgSetup.git
+fg_fgSetup_gitver: master
+
+# FutureGateway user settings
+fg_user: futuregateway
+fg_pass: futuregateway
+
+#FutureGateway DB settings
+fg_db_name: fgapiserver
+fg_db_user: fgapiserver 
+fg_db_password: fgapiserver_password

@@ -1,0 +1,58 @@
+- hosts: fgdatabase
+  remote_user: fgtest 
+  become: yes
+  become_method: sudo
+  vars_files:
+    - vars/fgdatabase.yml
+    - vars/fgcommons.yml
+  roles:
+    - {role: geerlingguy.mysql }
+    - {role: geerlingguy.git }
+  tasks:
+    - name: FGUser | Creatign FutureGateway user
+      user: name={{ fg_user }}
+            password={{ fg_pass }} 
+            comment="FutureGateway user"
+            generate_ssh_key=yes
+    - name: DB | Cloning DB from fgAPIServer
+      git: repo={{ fg_fgAPIServer_git }}
+           dest=/home/{{ fg_user }}/fgAPIServer
+           version={{ fg_fgAPIServer_gitver }}
+           force=yes
+    - name: CustomizeSQL | Customize database creation parameters
+      shell: cp /home/{{ fg_user }}/fgAPIServer/fgapiserver_db.sql /tmp/fgapiserver_db.sql;sed -i -e "s/drop database if exists fgapiserver/drop database if exists {{ fg_db_name }}/" /tmp/fgapiserver_db.sql;sed -i -e "s/create database fgapiserver/create database {{ fg_db_name }}/" /tmp/fgapiserver_db.sql;sed -i -e "s/grant all on fgapiserver/grant all on {{ fg_db_name }}/" /tmp/fgapiserver_db.sql;sed -i -e "s/{{ fg_db_name }}.* TO 'fgapiserver'/{{ fg_db_name }}.* TO \'{{ fg_db_user }}\'/g" /tmp/fgapiserver_db.sql;sed -i -e "s/IDENTIFIED BY \"fgapiserver_password\"/IDENTIFIED BY \"{{ fg_db_password }}\"/" /tmp/fgapiserver_db.sql; sed -i -e "s/use fgapiserver/use {{ fg_db_name }}/" /tmp/fgapiserver_db.sql
+    - name: Configuration | Get futuregateway configuration files
+      git: repo={{ fg_fgSetup_git }}
+           dest=/home/{{ fg_user }}/fgSetup
+           version={{ fg_fgSetup_gitver }}
+           force=yes
+    - name: chown_fgAPIServerRepo | Change ownership for fgAPIServer repo to futuregateway user
+      file: path=/home/{{ fg_user }}/fgAPIServer owner={{ fg_user }} group={{ fg_user }} mode=0775 recurse=yes
+    - name: chown_fgSetupRepo | Change ownership for fgSetup repo to futuregateway user
+      file: path=/home/{{ fg_user }}/fgAPIServer owner={{ fg_user }} group={{ fg_user }} mode=0775 recurse=yes
+    # The following fixes a bug faced in ansible (1.5.4)
+    # The DB will be first created and then re-created by
+    # the fgapiserver_db.sql in the next block 
+    #- name: DBinst_fix | Database creation workaround
+    #  mysql_db: name=fgapiserver
+    #            state=present
+    #            login_host=localhost
+    #            login_port=3306
+    #            login_user=root
+    #            login_password={{ mysql_root_password }}
+    # FutureGateway database creation script
+    - name: DBinst1 | Database creation and installation
+      mysql_db: name=fgapiserver
+                state=import
+                login_host={{ inventory_hostname }}
+                login_port={{ mysql_port }}
+                login_user=root
+                login_password={{ mysql_root_password }}
+                target=/tmp/fgapiserver_db.sql
+    # ASDB - environment setting and configuration
+    - name: ASDBEnv | APIServer database environment
+      file: path={{ inventory_hostname }}/.fgprofile state=directory owner={{ fg_user }} group={{ fg_user }} mode=0775 recurse=yes
+    # Cleanup unnecessary and temporary stuff
+    - name: Cleanup | Clean unnecessary and temporary stuff
+      file: path=/tmp/fgapiserver_db.sql state=absent
+

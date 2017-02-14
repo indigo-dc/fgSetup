@@ -1,0 +1,10 @@
+# This is the fg ansible 'hosts' file.
+
+[fgdatabase]
+fgtest
+
+[fgAPIServer]
+fgtest
+
+[APIServerDaemon]
+fgtest
