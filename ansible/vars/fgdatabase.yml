@@ -1,4 +1,8 @@
-#MySQL database settings
+# FutureGateway mySQL database settings
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+mysql_port: 3306
 mysql_root_password_update: yes
 mysql_root_password: rootpwd 
 

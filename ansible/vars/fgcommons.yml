@@ -1,8 +1,13 @@
 # Common FutureGateway configurable values are placed here
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+# Connect user
+fg_connect_user: fgtest
 
 # FutureGateway repositories settings
 fg_fgAPIServer_git: https://github.com/indigo-dc/fgAPIServer.git
-fg_fgAPIServer_gitver: v0.0.6-a
+fg_fgAPIServer_gitver: Issue#30 
 fg_fgSetup_git: https://github.com/indigo-dc/fgSetup.git
 fg_fgSetup_gitver: master
 
@@ -16,17 +21,17 @@ fg_db_user: fgapiserver
 fg_db_password: fgapiserver_password
 
 # FutureGateway' fgdb  configuration script 
-fg_loadconf: |
-             #!/bin/bash
-             #
-             # fgdb Environment setting configuration file
-             #
-             # Very specific FGDB service components environment must be set here
-             #
-             # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
-             export FGDB_HOST={{ inventory_hostname }}
-             export FGDB_PORT={{ mysql_port }}
-             export FGDB_USER={{ fg_db_user }}
-             export FGDB_PASSWD={{ fg_db_password }}
-             export FGDB_NAME={{ fg_db_name }}
-             export ASDB_OPTS=''
+fg_fgdb: |
+         #!/bin/bash
+         #
+         # fgdb Environment settings configuration file
+         #
+         # Very specific FGDB service component environment must be set here
+         #
+         # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+         export FGDB_HOST={{ inventory_hostname }}
+         export FGDB_PORT={{ mysql_port }}
+         export FGDB_USER={{ fg_db_user }}
+         export FGDB_PASSWD={{ fg_db_password }}
+         export FGDB_NAME={{ fg_db_name }}
+         export ASDB_OPTS=''

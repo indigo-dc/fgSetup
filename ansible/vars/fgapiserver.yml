@@ -1,0 +1,13 @@
+# FutureGateway fgapiserver configurable values are placed here
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+fg_fgapiserver: |
+                #!/bin/bash
+                #
+                # fgAPIServer Environment settings configuration file
+                #
+                # Very specific fgAPIServer service component environment must be set here
+                #
+                # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+

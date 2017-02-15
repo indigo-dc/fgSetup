@@ -1,0 +1,73 @@
+# FutureGateway fgapiserver component playbook 
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+- hosts: fgAPIServer 
+  remote_user: "{{ fg_connect_user }}" 
+  become: yes
+  become_method: sudo
+  vars_files:
+    - vars/fgdatabase.yml
+    - vars/fgcommons.yml
+    - vars/fgapiserver.yml
+  roles:
+    - {role: geerlingguy.git }
+  tasks:
+    - name: FGUser | Creatign FutureGateway user
+      user: name={{ fg_user }}
+            password={{ fg_pass }} 
+            comment="FutureGateway user"
+            generate_ssh_key=yes
+    - name: DB | Cloning DB from fgAPIServer
+      git: repo={{ fg_fgAPIServer_git }}
+           dest=/home/{{ fg_user }}/fgAPIServer
+           version={{ fg_fgAPIServer_gitver }}
+           force=yes
+    - name: Configuration | Get futuregateway configuration files
+      git: repo={{ fg_fgSetup_git }}
+           dest=/home/{{ fg_user }}/fgSetup
+           version={{ fg_fgSetup_gitver }}
+           force=yes
+    - name: chown_fgAPIServerRepo | Change ownership for fgAPIServer repo to futuregateway user
+      file: path="/home/{{ fg_user }}/{{ item }}" owner="{{ fg_user }}" group="{{ fg_user }}" mode=0775 recurse=yes
+      with_items:
+         - fgAPIServer
+         - fgSetup
+    # mysql client package installation
+    - name: MySQLcli_yum | Install the latest version of mysql client on CentOS
+      yum: name=mysql state=latest
+      when: ansible_os_family == "RedHat"
+    - name: MySQLcli_apt | Install the latest version of mysql client on Debian
+      apt: pkg=mysql-client state=latest 
+      when: ansible_os_family == "Debian"    
+    # Environment directory 
+    - name: EnvDir | Environment settings 
+      file: path=/home/{{ fg_user }}/.fgprofile state=directory owner={{ fg_user }} group={{ fg_user }} mode=0775 recurse=yes
+    # Commons environment
+    - name: EnvCommon | FutureGateway commons environment settings
+      copy: src="/home/{{ fg_user }}/fgSetup/setup_commons.sh"
+            dest="/home/{{ fg_user }}/.fgprofile/commons"
+            owner="{{ fg_user }}"
+            group="{{ fg_user }}"
+            mode=0644
+    # Load main environment settings
+    - name: EnvFGDB | FGDB environment setting loader
+      copy: content="{{ fg_fgdb }}"
+            dest="/home/{{ fg_user }}/.fgprofile/fgdb"
+            owner="{{ fg_user }}"
+            group="{{ fg_user }}"
+            mode=0644
+    - name: EnvFGAPIServer | fgAPIServer environment setting loader
+      copy: content="{{ fg_fgapiserver }}"
+            dest="/home/{{ fg_user }}/.fgprofile/fgapiserver"
+            owner="{{ fg_user }}"
+            group="{{ fg_user }}"
+            mode=0644
+    # Load FutureGateway profile components in bash_profile file
+    - name: EnvProfile | Insert load profile line in .profile file
+      blockinfile: block="for f in $(find $HOME/.fgprofile -type f); do source $f; done {{ '#' }} FGLOADENV"
+                   create=yes
+                   dest="/home/{{ fg_user }}/.profile"
+                   owner="{{ fg_user }}"
+                   group="{{ fg_user }}"
+                   mode=0644
