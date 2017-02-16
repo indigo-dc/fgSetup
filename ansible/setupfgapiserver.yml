@@ -2,7 +2,7 @@
 #
 # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
 
-- hosts: fgAPIServer 
+- hosts: fgAPIServer
   remote_user: "{{ fg_connect_user }}" 
   become: yes
   become_method: sudo
@@ -12,34 +12,69 @@
     - vars/fgapiserver.yml
   roles:
     - {role: geerlingguy.git }
+    - {role: bobbyrenwick.pip }
+    - {role: geerlingguy.apache, when: fg_wsgieng == 'apache' }
   tasks:
     - name: FGUser | Creatign FutureGateway user
-      user: name={{ fg_user }}
-            password={{ fg_pass }} 
+      user: name="{{ fg_user }}"
+            password="{{ fg_pass }}"
             comment="FutureGateway user"
             generate_ssh_key=yes
-    - name: DB | Cloning DB from fgAPIServer
-      git: repo={{ fg_fgAPIServer_git }}
-           dest=/home/{{ fg_user }}/fgAPIServer
-           version={{ fg_fgAPIServer_gitver }}
+    - name: fgAPIServer.git | Cloning fgAPIServer from git
+      git: repo="{{ fg_fgAPIServer_git }}"
+           dest="/home/{{ fg_user }}/fgAPIServer"
+           version="{{ fg_fgAPIServer_gitver }}"
            force=yes
     - name: Configuration | Get futuregateway configuration files
-      git: repo={{ fg_fgSetup_git }}
-           dest=/home/{{ fg_user }}/fgSetup
-           version={{ fg_fgSetup_gitver }}
+      git: repo="{{ fg_fgSetup_git }}"
+           dest="/home/{{ fg_user }}/fgSetup"
+           version="{{ fg_fgSetup_gitver }}"
            force=yes
     - name: chown_fgAPIServerRepo | Change ownership for fgAPIServer repo to futuregateway user
       file: path="/home/{{ fg_user }}/{{ item }}" owner="{{ fg_user }}" group="{{ fg_user }}" mode=0775 recurse=yes
       with_items:
          - fgAPIServer
          - fgSetup
-    # mysql client package installation
-    - name: MySQLcli_yum | Install the latest version of mysql client on CentOS
-      yum: name=mysql state=latest
+    # Package installation: mysql client and dev env+libs (RedHat+Deb)
+    - name: ReqPackages_yum | Install required packages for RedHat
+      yum: name="{{ item }}" state=latest
+      with_items:
+         - mysql
+         - mysql-devel
+         - MySQL-python
+         - gcc
+         - libffi-devel 
+         - python-devel 
+         - openssl-devel
+         - mod_wsgi
       when: ansible_os_family == "RedHat"
-    - name: MySQLcli_apt | Install the latest version of mysql client on Debian
-      apt: pkg=mysql-client state=latest 
-      when: ansible_os_family == "Debian"    
+    - name: ReqPackages_apt | Install required packages for Debian
+      apt: pkg="{{ item }}" state=latest
+      with_items:
+         - mysql-client
+         - libmysqlclient-dev
+         - python-mysql.connector 
+         - build-essential
+         - libssl-dev 
+         - libffi-dev
+         - python-dev
+         - libapache2-mod-wsgi
+      when: ansible_os_family == "Debian"
+    - name: venv | installing virtualenv
+      command: pip install virtualenv
+    # virtualenv
+    - name: installvenv | install virtualenv
+      command: pip install virtualenv
+               creates=/usr/bin/virtualenv
+    - name: createfgvenv | isntall virtualenv for fgAPIServer
+      command: virtualenv "/home/{{ fg_user }}/fgAPIServer/venv" 
+               creates="/home/{{ fg_user }}/fgAPIServer/venv"
+    - name: venvrequiremens | Install virtualenv requirements
+      pip: requirements="/home/{{ fg_user }}/fgAPIServer/requirements.txt"
+           virtualenv="/home/{{ fg_user }}/fgAPIServer/venv"
+    # Configure wsgi
+    #- name: wsgimod | configure wsgi module
+    #  file:
     # Environment directory 
     - name: EnvDir | Environment settings 
       file: path=/home/{{ fg_user }}/.fgprofile state=directory owner={{ fg_user }} group={{ fg_user }} mode=0775 recurse=yes

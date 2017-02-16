@@ -2,6 +2,16 @@
 #
 # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
 
+# fgAPIServer WSGI engines:
+# apache - Uses apache + mod_wsgi
+# nginx  - nginx + uwsgi (not yet implemented)
+fg_wsgieng: apache
+
+# Values for apache settings (Deb/Ubuntu only)
+apache_mods_enabled:
+   - rewrite.load
+   - ssl.load
+
 fg_fgapiserver: |
                 #!/bin/bash
                 #

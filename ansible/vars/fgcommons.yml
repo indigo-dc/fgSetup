@@ -16,6 +16,8 @@ fg_user: futuregateway
 fg_pass: futuregateway
 
 # FutureGateway DB settings
+fg_db_host: "{{ inventory_hostname }}"
+fg_db_port: 3306
 fg_db_name: fgapiserver
 fg_db_user: fgapiserver 
 fg_db_password: fgapiserver_password
@@ -29,8 +31,8 @@ fg_fgdb: |
          # Very specific FGDB service component environment must be set here
          #
          # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
-         export FGDB_HOST={{ inventory_hostname }}
-         export FGDB_PORT={{ mysql_port }}
+         export FGDB_HOST={{ fg_db_host }}
+         export FGDB_PORT={{ fg_db_port }}
          export FGDB_USER={{ fg_db_user }}
          export FGDB_PASSWD={{ fg_db_password }}
          export FGDB_NAME={{ fg_db_name }}
