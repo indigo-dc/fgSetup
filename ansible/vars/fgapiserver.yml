@@ -18,6 +18,30 @@ apache_mods_enabled:
    - rewrite.load
    - ssl.load
 
+# fgAPIServer configuration file values
+fgapiver: v1.0
+fgapiserver_name: FutureGateway API Server
+fgapisrv_host: 0.0.0.0
+fgapisrv_port: 8888
+fgapisrv_debug: True
+fgapisrv_iosandbox: /tmp
+fgapisrv_geappid: 10000
+fgjson_indent: 4
+fgapisrv_key:
+fgapisrv_crt:
+fgapisrv_logcfg: fgapiserver_log.conf
+fgapisrv_dbver: 0.0.10
+fgapisrv_secret: 0123456789ABCDEF
+fgapisrv_notoken: False
+fgapisrv_notokenusr: test
+fgapisrv_lnkptvflag: True
+fgapisrv_ptvendpoint: http://localhost:8889/checktoken
+fgapisrv_ptvuser: tokenver_user
+fgapisrv_ptvpass: tokenver_pass
+fgapisrv_ptvdefusr: futuregateway
+fgapisrv_ptvdefgrp: administrator
+fgapisrv_ptvmapfile: fgapiserver_ptvmap.json
+
 fg_fgapiserver: |
                 #!/bin/bash
                 #

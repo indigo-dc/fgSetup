@@ -74,11 +74,20 @@
     - name: venvrequiremens | Install virtualenv requirements
       pip: requirements="/home/{{ fg_user }}/fgAPIServer/requirements.txt"
            virtualenv="/home/{{ fg_user }}/fgAPIServer/venv"
+    # Configure fgapiserver.conf file
+    - name: fgapiserverconf | Configure fgapiserver.conf file
+      template: 
+        src: templates/fgapiserver.conf.j2
+        dest: "/home/{{ fg_user }}/fgAPIServer/fgapiserver.conf"
+        backup: yes
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644 
     # Configure wsgi
     #- name: wsgimod | configure wsgi module
     - name: fgwsgiconf | fgAPIServer wsgi configuration
       template:
-        src: templates/fgapiserver.conf.j2 
+        src: templates/fgapiserver_wsgi.conf.j2 
         dest: "{{ apache_conf_path }}/sites-available/{{ apache_vhosts_filename }}"
         owner: root
         group: root
