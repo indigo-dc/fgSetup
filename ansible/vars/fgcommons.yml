@@ -10,6 +10,8 @@ fg_fgAPIServer_git: https://github.com/indigo-dc/fgAPIServer.git
 fg_fgAPIServer_gitver: Issue#30 
 fg_fgSetup_git: https://github.com/indigo-dc/fgSetup.git
 fg_fgSetup_gitver: master
+fg_APIServerDaemon_git: https://github.com/indigo-dc/APIServerDaemon.git
+fg_APIServerDaemon_gitver: Issue#25
 
 # FutureGateway user settings
 fg_user: futuregateway

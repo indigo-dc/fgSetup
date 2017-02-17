@@ -1,0 +1,140 @@
+# FutureGateway fgapiserver component playbook 
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+- hosts: fgAPIServer
+  remote_user: "{{ fg_connect_user }}" 
+  become: yes
+  become_method: sudo
+  vars_files:
+    - vars/fgdatabase.yml
+    - vars/fgcommons.yml
+    - vars/apiserverdaemon.yml
+  roles:
+    - {role: geerlingguy.git }
+  tasks:
+    - name: FGUser | Creatign FutureGateway user
+      user: name="{{ fg_user }}"
+            password="{{ fg_pass }}"
+            comment="FutureGateway user"
+            generate_ssh_key=yes
+    - name: JobTestUser | Creating SSH job test user
+      user: name=jobtest
+            password="{{ lookup('password', '/tmp/.jobtest.pwd') }}"
+            comment="JobTester user"
+    - name: APIServerDaemon.git | Cloning APIServerDaemon from git
+      git: repo="{{ fg_APIServerDaemon_git }}"
+           dest="/home/{{ fg_user }}/APIServerDaemon"
+           version="{{ fg_APIServerDaemon_gitver }}"
+           force=yes
+    - name: Configuration | Get futuregateway configuration files
+      git: repo="{{ fg_fgSetup_git }}"
+           dest="/home/{{ fg_user }}/fgSetup"
+           version="{{ fg_fgSetup_gitver }}"
+           force=yes
+    - name: rOCCIadp | JSAGA rOCCI adaptor
+      git: repo="{{ fg_rOCCI_adaptor_git }}"
+           dest="/home/{{ fg_user }}/jsaga-adaptor-rocci"
+           version="{{ fg_rOCCI_adaptor_gitver }}"
+           force=yes
+    - name: GridnCloudEngine | Grid and Cloud Engine
+      git: repo="{{ fg_GridnCloudEngine_git }}"
+           dest="/home/{{ fg_user }}/grid-and-cloud-engine"
+           version="{{ fg_GridnCloudEngine_gitver }}"
+           force=yes
+    - name: chown_fgAPIServerRepo | Change ownership for fgAPIServer repo to futuregateway user
+      file: path="/home/{{ fg_user }}/{{ item }}" owner="{{ fg_user }}" group="{{ fg_user }}" mode=0775 recurse=yes
+      with_items:
+         - APIServerDaemon
+         - jsaga-adaptor-rocci
+         - grid-and-cloud-engine
+         - fgSetup
+    # Package installation: mysql client (RedHat+Deb)
+    - name: ReqPackages_yum | Install required packages for RedHat
+      yum: name="{{ item }}" state=latest
+      with_items:
+         - mariadb
+         - java-1.7.0-openjdk
+         - java-1.7.0-openjdk-devel
+         - tomcat
+         - tomcat-webapps
+         - tomcat-admin-webapps
+         - ruby-devel
+         - git
+         - openldap
+         - openvpn
+         - screen
+         - jq
+      when: ansible_os_family == "RedHat"
+    - name: ReqPackages_apt | Install required packages for Debian
+      apt: pkg="{{ item }}" state=latest
+      with_items:
+         - mysql-client
+         - openjdk-7-jdk
+         - tomcat7
+         - tomcat7-admin
+         - tomcat7-common
+         - ant
+         - maven
+         - build-essential
+         - curl
+         - ruby-dev
+         - libapache2-mod-wsgi
+         - git
+         - ldap-utils
+         - openvpn
+         - screen
+         - jq
+      when: ansible_os_family == "Debian"
+      # Tomcat7 installation (RedHat+Deb)
+    - name: Tomcat7 | Install Tomcat7 (RedHat+Deb)
+      yum: name="{{ item }}" state=latest
+      with_items:
+         - tomcat
+         - tomcat-webapps
+         - tomcat-admin-webapps
+      when: ansible_os_family == "RedHat"
+    - name: ReqPackages_apt | Install required packages for Debian
+      apt: pkg="{{ item }}" state=latest
+      with_items:
+         - tomcat7
+         - tomcat7-admin
+         - tomcat7-common
+      when: ansible_os_family == "Debian"
+    #
+    # EGI occi-cli
+    # GridnCloud Engine
+    # Build Adaptors
+    # Build APIServerDaemon
+    #
+    # Environment directory 
+    - name: EnvDir | Environment settings 
+      file: path=/home/{{ fg_user }}/.fgprofile state=directory owner={{ fg_user }} group={{ fg_user }} mode=0775 recurse=yes
+    # Commons environment
+    - name: EnvCommon | FutureGateway commons environment settings
+      copy: src="/home/{{ fg_user }}/fgSetup/setup_commons.sh"
+            dest="/home/{{ fg_user }}/.fgprofile/commons"
+            owner="{{ fg_user }}"
+            group="{{ fg_user }}"
+            mode=0644
+    # Load main environment settings
+    - name: EnvFGDB | FGDB environment setting loader
+      copy: content="{{ fg_fgdb }}"
+            dest="/home/{{ fg_user }}/.fgprofile/fgdb"
+            owner="{{ fg_user }}"
+            group="{{ fg_user }}"
+            mode=0644
+    - name: EnvFGAPIServer | fgAPIServer environment setting loader
+      copy: content="{{ fg_apiserverdaemon }}"
+            dest="/home/{{ fg_user }}/.fgprofile/apiserverdaemon"
+            owner="{{ fg_user }}"
+            group="{{ fg_user }}"
+            mode=0644
+    # Load FutureGateway profile components in bash_profile file
+    - name: EnvProfile | Insert load profile line in .profile file
+      blockinfile: block="for f in $(find $HOME/.fgprofile -type f); do source $f; done {{ '#' }} FGLOADENV"
+                   create=yes
+                   dest="/home/{{ fg_user }}/.profile"
+                   owner="{{ fg_user }}"
+                   group="{{ fg_user }}"
+                   mode=0644

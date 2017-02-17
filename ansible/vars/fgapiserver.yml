@@ -42,6 +42,7 @@ fgapisrv_ptvdefusr: futuregateway
 fgapisrv_ptvdefgrp: administrator
 fgapisrv_ptvmapfile: fgapiserver_ptvmap.json
 
+# fgAPIServer environment file
 fg_fgapiserver: |
                 #!/bin/bash
                 #

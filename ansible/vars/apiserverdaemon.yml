@@ -1,0 +1,27 @@
+# FutureGateway apiserverdaemon configurable values are placed here
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+# APIServerDaemon application server:
+# none - Does not setup any application server 
+# tomcat - install and configure Apache Tomcat
+# ... - Add your own PTV service installation
+fg_appserver: 'tomcat'
+
+
+# APIServerDaemon JSAGA adaptors
+fg_rOCCI_adaptor_git: 'https://github.com/csgf/jsaga-adaptor-rocci.git'
+fg_rOCCI_adaptor_gitver: 'master'
+fg_GridnCloudEngine_git: 'https://github.com/csgf/grid-and-cloud-engine.git'
+fg_GridnCloudEngine_gitver: 'FutureGateway'
+
+# APIServerDaemon environment file
+fg_apiserverdaemon: |
+                    #!/bin/bash
+                    #
+                    # APIServerDaemon Environment settings configuration file
+                    #
+                    # Very specific APIServerDaemon service component environment must be set here
+                    #
+                    # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
