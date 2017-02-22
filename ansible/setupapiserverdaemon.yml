@@ -18,10 +18,35 @@
             password="{{ fg_pass }}"
             comment="FutureGateway user"
             generate_ssh_key=yes
-    - name: JobTestUser | Creating SSH job test user
-      user: name=jobtest
-            password="{{ lookup('password', '/tmp/.jobtest.pwd') }}"
-            comment="JobTester user"
+            shell=/bin/bash
+    - name: FGUserpwd | Managing futuregateway password
+      shell: echo "{{ fg_user }}:{{ fg_pass }}" | /usr/sbin/chpasswd 
+    - name: TesterUser | Creating APIServerDaemon tester user
+      user: name="{{ tester_user }}"
+            password="{{ tester_pass }}"
+            comment="APIServerDaemon tester user"
+            shell=/bin/bash
+    - name: TesterUserpwd | Managing tester user password
+      shell: echo "{{ tester_user }}:{{ tester_pass }}" | /usr/sbin/chpasswd 
+    # Configure ssh to allow password authentication to JobTestUser and fg_user
+    - name: jobtpass | Allow password authentication to JobTestUser and fg_user
+      blockinfile:
+        backup: yes 
+        dest: /etc/ssh/sshd_config
+        regexp: ''
+        insertafter: EOF
+        block: |
+               #jobtest allow password auth.
+               Match User jobtest
+               PasswordAuthentication yes
+               Match User {{ fg_user }}
+               PasswordAuthentication yes
+      register: sshdcfg
+    - name: restartssh | Restart SSH service
+      service:
+        name: ssh
+        state: restarted
+      when: sshdcfg.changed
     - name: APIServerDaemon.git | Cloning APIServerDaemon from git
       git: repo="{{ fg_APIServerDaemon_git }}"
            dest="/home/{{ fg_user }}/APIServerDaemon"
@@ -109,7 +134,6 @@
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0755
-    # EGI occi-cli
     # GridnCloud Engine
     - name: gncTPool_bld | Build the GridnCloudEngine threadpool
       become: yes
@@ -161,6 +185,42 @@
         group: "{{ fg_user }}"
         mode: 0644
       when: rocci.changed
+    # Install the GridnCloudEngine UsersTrackingDB
+    - name: utDBinst0 | UsersTracking Database creation check 
+      mysql_db: name=userstracking
+                state=present
+                login_host="{{ fg_db_host }}"
+                login_port="{{ fg_db_port }}"
+                login_user=root
+                login_password="{{ mysql_root_password }}"
+      register: db_present
+    - name: utDBinst1 | UsersTracking Database creation and installation
+      mysql_db: name=userstracking
+                state=import
+                login_host="{{ fg_db_host }}"
+                login_port="{{ fg_db_port }}"
+                login_user=root
+                login_password="{{ mysql_root_password }}"
+                target="/home/{{ fg_user }}/grid-and-cloud-engine/UsersTrackingDB/UsersTrackingDB.sql"
+      when: db_present.changed
+    # APIServerDaemon .properties files
+    - name: log4j_prop | Configure log4j.properties file
+      template:
+        src: templates/asd_log4j.properties.j2
+        dest: "/home/{{ fg_user }}/APIServerDaemon/web/WEB-INF/log4j.properties"
+        backup: yes
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644 
+    # APIServerDaemon .properties file
+    - name: asd_prop | Configure APIServerDaemon file
+      template:
+        src: templates/asd_APIServerDaemon.properties.j2
+        dest: "/home/{{ fg_user }}/APIServerDaemon/web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties"
+        backup: yes
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
     # Build APIServerDaemon
     - name: mkwebinflib | create APIServerDaemon web/WEB-INF/lib dir
       file:

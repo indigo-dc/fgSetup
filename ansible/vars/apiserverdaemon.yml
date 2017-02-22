@@ -8,6 +8,17 @@
 # ... - Add your own PTV service installation
 fg_appserver: 'tomcat'
 
+# FutureGateway jobtester user
+tester_user: jobtester
+tester_pass: j0bt3st3r
+
+# GridnCloudEngine UsersTrackingDB
+ut_db_jndi: jdbc/UserTrackingPool
+ut_db_host: localhost
+ut_db_port: 3306
+ut_db_user: tracking_user
+ut_db_password: usertracking
+ut_db_name: userstracking
 
 # APIServerDaemon JSAGA adaptors
 fg_rOCCI_adaptor_git: 'https://github.com/csgf/jsaga-adaptor-rocci.git'
@@ -21,6 +32,39 @@ voms_indigo_lsc: |
                  /C=PT/O=LIPCA/CN=LIP Certification Authority
 voms_indigo_vomses: |
                     "vo.indigo-datacloud.eu" "voms01.ncg.ingrid.pt" "40101" "/C=PT/O=LIPCA/O=LIP/OU=Lisboa/CN=voms01.ncg.ingrid.pt" "vo.indigo-datacloud.eu"
+
+#
+# APIServerDaemon .properties files
+#
+
+# Log4j config file
+asd_file_appender: org.apache.log4j.RollingFileAppender
+asd_file_file: ${APISrvDaemonPath}WEB-INF/logs/APIServerDaemon.log
+asd_file_maxfilesize: 100MB
+asd_file_maxbackupindex: 10
+asd_file_layout: org.apache.log4j.PatternLayout
+file_layout_conversionpattern: '%d{yyyy-MM-dd HH:mm:ss} %-5p %t %c{1}:%L - %m%n'
+
+# APIServerDaemon.properties
+asdMaxThreads: 100
+asdCloseTimeout: 20
+gePollingDelay: 4000
+gePollingMaxCommands: 5
+asControllerDelay: 10000
+asControllerMaxCommands: 5
+asTaskMaxRetries: 5
+asTaskMaxWait: 1800000
+utdb_jndi: "{{ ut_db_jndi }}" 
+utdb_host: "{{ ut_db_host }}"
+utdb_port: "{{ ut_db_port }}"
+utdb_user: "{{ ut_db_user }}"
+utdb_pass: "{{ ut_db_password }}"
+utdb_name: "{{ ut_db_name }}"
+
+# ToscaIDC.properties
+fgapisrv_ptvendpoint: http://localhost:8889
+fgapisrv_ptvuser: tokenver_user
+fgapisrv_ptvpass: tokenver_pass
 
 # APIServerDaemon environment file
 fg_apiserverdaemon: |
@@ -40,3 +84,10 @@ fg_apiserverdaemon: |
 
                     # Set CATALINA variables
                     catalina_env
+
+                    export UTDB_HOST={{ ut_db_host }}
+                    export UTDB_PORT={{ ut_db_port }}
+                    export UTDB_USER={{ ut_db_user }}
+                    export UTDB_PASSWD={{ ut_db_password }}
+                    export UTDB_NAME={{ ut_db_name }}
+                    export UTDB_OPTS=''
