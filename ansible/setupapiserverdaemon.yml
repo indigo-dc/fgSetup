@@ -118,6 +118,7 @@
       args:
         chdir: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine-threadpool"
         creates: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine-threadpool/target/grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar"
+      register: gnceng_tp
     - name: gncTPool_cpy | Copy the GridnCloudEngine threadpool jar to APIServerDaemon lib directory
       copy:
         src: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine-threadpool/target/grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar"
@@ -125,6 +126,7 @@
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0644
+      when: gnceng_tp.changed
     - name: gncMain_bld | Build the GridnCloudEngine main class
       become: yes
       become_user: futuregateway
@@ -132,6 +134,7 @@
       args:
         chdir: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine_M"
         creates: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine_M/target/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar"
+      register: gnceng_M
     - name: gncMain_cpy | Copy the GridnCloudEngine main jar to APIServerDaemon lib directory
       copy:
         src: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine_M/target/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar"
@@ -139,6 +142,7 @@
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0644
+      when: gnceng_M.changed
     # Build Adaptors
     # jsaga-rocci-adaptor
     - name: rocci_bld | Build jsaga-rocci-adaptor
@@ -148,6 +152,7 @@
       args:
         chdir: "/home/{{ fg_user }}/jsaga-adaptor-rocci"
         creates: "/home/{{ fg_user }}/jsaga-adaptor-rocci/dist/jsaga-adaptor-rocci.jar"
+      register: rocci
     - name: rocci_cpy | Copy jsaga-rocci-adaptor jar to APIServerDaemon lib directory
       copy:
         src: "/home/{{ fg_user }}/jsaga-adaptor-rocci/dist/jsaga-adaptor-rocci.jar"
@@ -155,6 +160,7 @@
         owner: "{{ fg_user }}" 
         group: "{{ fg_user }}"
         mode: 0644
+      when: rocci.changed
     # Build APIServerDaemon
     - name: mkwebinflib | create APIServerDaemon web/WEB-INF/lib dir
       file:
@@ -171,6 +177,16 @@
         executable: /bin/bash
         chdir: "/home/{{ fg_user }}/APIServerDaemon"
         creates: "/home/{{ fg_user }}/APIServerDaemon/dist/APIServerDaemon.war"
+      register: asdwar
+    # Deploy APIServerDaemon war file
+    - name: dplyasd | Deploy APIServerDaemon.war file
+      copy:
+        src: "/home/{{ fg_user }}/APIServerDaemon/dist/APIServerDaemon.war"
+        dest: /var/lib/tomcat7/webapps/APIServerDaemon.war 
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
+      when: asdwar.changed
     # Environment directory 
     - name: EnvDir | Environment settings 
       file: 
