@@ -163,16 +163,9 @@
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0755
-    - name: modivyxml | Modify APIServerDaemon build ivy.xml file
-      lineinfile:
-        name: /home/{{ fg_user }}/APIServerDaemon/ivy.xml 
-        insertbefore: '</dependencies>'
-        line: '                <dependency org="javax.servlet" name="javax.servlet-api" rev="3.1.0"/>'
     - name: bld_asdwar | Build the APIServerDaemon war file
       become: yes
       become_user: futuregateway
-      #shell: su - {{ fg_user }} -c "cd /home/{{ fg_user }}/APIServerDaemon;CLASSPATH=`sudo ls -1 /home/{{ fg_user }}/APIServerDaemon/lib|awk '{printf(\"home/futuregateway/APIServerDaemon/lib/%s:\",$1)}'`;echo \"CLASSPATH=\"$CLASSPATH>/tmp/pippo1;pwd>>/tmp/pippo1;ant all"
-      #shell: su - {{ fg_user }} -c "cd /home/{{ fg_user }}/APIServerDaemon;ant all"
       shell: . /home/{{ fg_user }}/.profile && ant all
       args:
         executable: /bin/bash
