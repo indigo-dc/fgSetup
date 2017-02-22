@@ -15,6 +15,13 @@ fg_rOCCI_adaptor_gitver: 'master'
 fg_GridnCloudEngine_git: 'https://github.com/csgf/grid-and-cloud-engine.git'
 fg_GridnCloudEngine_gitver: 'FutureGateway'
 
+# VOMS Settings: vo.indigo-datacloud.eu
+voms_indigo_lsc: |
+                 /C=PT/O=LIPCA/O=LIP/OU=Lisboa/CN=voms01.ncg.ingrid.pt
+                 /C=PT/O=LIPCA/CN=LIP Certification Authority
+voms_indigo_vomses: |
+                    "vo.indigo-datacloud.eu" "voms01.ncg.ingrid.pt" "40101" "/C=PT/O=LIPCA/O=LIP/OU=Lisboa/CN=voms01.ncg.ingrid.pt" "vo.indigo-datacloud.eu"
+
 # APIServerDaemon environment file
 fg_apiserverdaemon: |
                     #!/bin/bash

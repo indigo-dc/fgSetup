@@ -187,6 +187,37 @@
         group: "{{ fg_user }}"
         mode: 0644
       when: asdwar.changed
+    # OCCI cli from EGI-fedcloud
+    - name: occicli | Install EGI-FedCloud OCCI cli
+      shell: curl -L http://go.egi.eu/fedcloud.ui | /bin/bash -
+      args:
+        executable: /bin/bash
+        creates: /usr/bin/occi
+      register: occi
+    # VOMS conf: vo.indigo-datacloud.eu (dir)
+    - name: vomsconf | Confoguring vo.indigo-datacloud.eu
+      file:
+        dest: /etc/grid-security/vomsdir/vo.indigo-datacloud.eu
+        group: "{{ fg_user }}"
+        owner: "{{ fg_user }}"
+        mode: 0755 
+        state: directory 
+    # VOMS conf: vo.indigo-datacloud.eu (lsc)
+    - name: vomsconf | Confoguring vo.indigo-datacloud.eu
+      copy:
+        content: "{{ voms_indigo_lsc }}"
+        dest: /etc/grid-security/vomsdir/vo.indigo-datacloud.eu/voms01.ncg.ingrid.pt.lsc 
+        group: "{{ fg_user }}"
+        owner: "{{ fg_user }}"
+        mode: 644
+    # VOMS conf: vo.indigo-datacloud.eu (vomses)
+    - name: vomsconf | Confoguring vo.indigo-datacloud.eu
+      copy:
+        content: "{{ voms_indigo_vomses }}"
+        dest: /etc/vomses/vo.indigo-datacloud.eu-voms01.ncg.ingrid.pt 
+        group: "{{ fg_user }}"
+        owner: "{{ fg_user }}"
+        mode: 644
     # Environment directory 
     - name: EnvDir | Environment settings 
       file: 
