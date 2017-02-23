@@ -399,6 +399,11 @@
         chdir: "/home/{{ fg_user }}/jsaga-adaptor-rocci"
         creates: "/home/{{ fg_user }}/jsaga-adaptor-rocci/dist/jsaga-adaptor-rocci.jar"
       register: rocci
+    # Stat jsaga-adaptor-rocci.jar 
+    - name: jsaga-adaptor-rocci.jar | Stat jsaga-adaptor-rocci.jar 
+      stat:
+        path: "/home/{{ fg_user }}/APIServerDaemon/lib/jsaga-adaptor-rocci.jar"
+      register: rocci_jar
     # Place jsaga-rocci-adaptor jar into APIServerdaemon lib/
     - name: rocci_cpy | Copy jsaga-rocci-adaptor jar to APIServerDaemon lib directory
       copy:
@@ -407,7 +412,7 @@
         owner: "{{ fg_user }}" 
         group: "{{ fg_user }}"
         mode: 0644
-      when: rocci.changed
+      when: rocci.changed or not rocci_jar.stat.exists
 
     #
     # APIServerDaemon .properties files
