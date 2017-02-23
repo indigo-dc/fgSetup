@@ -75,13 +75,15 @@
                Match User {{ tester_user }}
                PasswordAuthentication yes
       register: sshdcfg
-      when: tstuser.changed 
-    # Restart ssh if its configuration changes
-    - name: restartssh | Restart SSH service
-      service:
-        name: ssh
-        state: restarted
-      when: sshdcfg.changed or tstuser.changed
+      when: tstuser.changed
+    # Following fix on SSH settings is needed only for Ubuntu14.04
+    - name: occicli | Install EGI-FedCloud OCCI cli
+      shell: sudo mkdir -p /etc/ssh/ssh_host_disabled; find /etc/ssh/ -name 'ssh_host_*' | grep -v disabled | grep -v rsa | grep -v \_dsa | xargs -I{} sudo mv {} /etc/ssh/ssh_host_disabled/
+      args:
+        executable: /bin/bash
+        creates: /etc/ssh/ssh_host_disabled
+      register: ssh_host_disabled
+      when: ansible_os_family == "Debian"
 
     #
     # SSH keyscanning, avoid (yes/no) request SSHing among same host users
@@ -94,6 +96,13 @@
         executable: /bin/bash
         chdir: "/home/{{ fg_user }}"
       when: sshdcfg.changed or tstuser.changed 
+
+    # Restart ssh if its configuration changes
+    - name: restartssh | Restart SSH service
+      service:
+        name: ssh
+        state: restarted
+      when: sshdcfg.changed or tstuser.changed or ssh_host_disabled.changed
     
     #
     # GIT Repositories: APIServerDaemon, fgSetup, rOCCI, GridmCloudEngine
