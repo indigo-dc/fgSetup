@@ -16,6 +16,7 @@ fg_APIServerDaemon_gitver: Issue#25
 # FutureGateway user settings
 fg_user: futuregateway
 fg_pass: futuregateway
+fg_passauth: yes
 
 # FutureGateway DB settings
 fg_db_host: "{{ inventory_hostname }}"

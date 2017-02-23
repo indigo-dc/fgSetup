@@ -13,77 +13,175 @@
   roles:
     - {role: geerlingguy.git }
   tasks:
+    #
+    # FutureGateway user
+    #
+
+    # Create FutureGateway user
     - name: FGUser | Creatign FutureGateway user
-      user: name="{{ fg_user }}"
-            password="{{ fg_pass }}"
-            comment="FutureGateway user"
-            generate_ssh_key=yes
-            shell=/bin/bash
+      user: 
+        name: "{{ fg_user }}"
+        password: "{{ fg_pass }}"
+        comment: "FutureGateway user"
+        generate_ssh_key: yes
+        shell: /bin/bash
+      register: fguser
+    # Manage password for FutureGateway user
     - name: FGUserpwd | Managing futuregateway password
       shell: echo "{{ fg_user }}:{{ fg_pass }}" | /usr/sbin/chpasswd 
+
+    #
+    # FutureGateway tester user
+    #    
+
+    # Create the FutureGateway tester user
     - name: TesterUser | Creating APIServerDaemon tester user
-      user: name="{{ tester_user }}"
-            password="{{ tester_pass }}"
-            comment="APIServerDaemon tester user"
-            shell=/bin/bash
+      user: 
+        name: "{{ tester_user }}"
+        password: "{{ tester_pass }}"
+        comment: "APIServerDaemon tester user"
+        shell: /bin/bash
+      register: tstuser
+    # Manage password for FutureGateway tester user
     - name: TesterUserpwd | Managing tester user password
       shell: echo "{{ tester_user }}:{{ tester_pass }}" | /usr/sbin/chpasswd 
-    # Configure ssh to allow password authentication to JobTestUser and fg_user
-    - name: jobtpass | Allow password authentication to JobTestUser and fg_user
+
+    #
+    # SSH password authentication
+    #
+
+    # Configure ssh to allow password authentication to FutureGateway user
+    - name: fguser_pass | Allow password authentication to {{ fg_user }}
       blockinfile:
         backup: yes 
         dest: /etc/ssh/sshd_config
         regexp: ''
         insertafter: EOF
         block: |
-               #jobtest allow password auth.
-               Match User jobtest
-               PasswordAuthentication yes
+               # {{ fg_user }} allow password auth.
                Match User {{ fg_user }}
                PasswordAuthentication yes
+      register: sshdcfg_fguser
+      when: fguser.changed and "{{ fg_passauth }}" == "yes"
+    # Configure ssh to allow password authentication to FutureGateway tester user 
+    - name: tstuser | Allow password authentication to JobTestUser and test user "{{ tester_user }}"
+      blockinfile:
+        backup: yes
+        dest: /etc/ssh/sshd_config
+        regexp: ''
+        insertafter: EOF
+        block: |
+               #jobtest allow password auth.
+               Match User {{ tester_user }}
+               PasswordAuthentication yes
       register: sshdcfg
+      when: tstuser.changed 
+    # Restart ssh if its configuration changes
     - name: restartssh | Restart SSH service
       service:
         name: ssh
         state: restarted
-      when: sshdcfg.changed
+      when: sshdcfg.changed or tstuser.changed
+
+    #
+    # SSH keyscanning, avoid (yes/no) request SSHing among same host users
+    #
+    - name: sshkeyscan | Configure SSH keyscan 
+      become: yes
+      become_user: futuregateway
+      shell: ssh-keyscan -H -t rsa localhost >> $HOME/.ssh/known_hosts
+      args:
+        executable: /bin/bash
+        chdir: "/home/{{ fg_user }}"
+      when: sshdcfg.changed or tstuser.changed 
+    
+    #
+    # GIT Repositories: APIServerDaemon, fgSetup, rOCCI, GridmCloudEngine
+    #
+
+    # Stat the APIServerDaemon directory 
+    - name: APIServerDaemon.dir | Get stat of APIServerDaemon dir
+      stat:
+        path: "/home/{{ fg_user }}/APIServerDaemon"
+      register: asddir   
+    # Extract APIServerDaemon from git repository
     - name: APIServerDaemon.git | Cloning APIServerDaemon from git
-      git: repo="{{ fg_APIServerDaemon_git }}"
-           dest="/home/{{ fg_user }}/APIServerDaemon"
-           version="{{ fg_APIServerDaemon_gitver }}"
-           force=yes
+      git: 
+        repo: "{{ fg_APIServerDaemon_git }}"
+        dest: "/home/{{ fg_user }}/APIServerDaemon"
+        version: "{{ fg_APIServerDaemon_gitver }}"
+        force: yes
+      when: asddir.stat.exists
+
+    # Stat the fgSetup directory
+    - name: fgSetup.dir | Get stat of fgSetup dir
+      stat: 
+        path: "/home/{{ fg_user }}/fgSetup"
+      register: fgsdir
+    # Extract fgSetup from git repository
     - name: Configuration | Get futuregateway configuration files
-      git: repo="{{ fg_fgSetup_git }}"
-           dest="/home/{{ fg_user }}/fgSetup"
-           version="{{ fg_fgSetup_gitver }}"
-           force=yes
+      git: 
+        repo: "{{ fg_fgSetup_git }}"
+        dest: "/home/{{ fg_user }}/fgSetup"
+        version: "{{ fg_fgSetup_gitver }}"
+        force: yes
+      when: fgsdir.stat.exists
+
+    # Stat the rOCCI directory
+    - name: rOCCIadp.dir | Get stat of rOCCI adaptor dir
+      stat:
+        path: "/home/{{ fg_user }}/jsaga-adaptor-rocci"
+      register: roccidir
+    # Extract from CSGF git repository the  rOCCI adaptor
     - name: rOCCIadp | JSAGA rOCCI adaptor
-      git: repo="{{ fg_rOCCI_adaptor_git }}"
-           dest="/home/{{ fg_user }}/jsaga-adaptor-rocci"
-           version="{{ fg_rOCCI_adaptor_gitver }}"
-           force=yes
+      git: 
+        repo: "{{ fg_rOCCI_adaptor_git }}"
+        dest: "/home/{{ fg_user }}/jsaga-adaptor-rocci"
+        version: "{{ fg_rOCCI_adaptor_gitver }}"
+        force: yes
+      when: roccidir.stat.exists
+
+    # Stat the GridnCloudEngine directory
+    - name: GridnCloudEngine.dir | Get stat of GridnCloudEngine dir
+      stat: 
+        path: "/home/{{ fg_user }}/grid-and-cloud-engine"
+      register: gncengdir
+    # Extract from CSGF git repository the Grid and Cloud Engine
     - name: GridnCloudEngine | Grid and Cloud Engine
-      git: repo="{{ fg_GridnCloudEngine_git }}"
-           dest="/home/{{ fg_user }}/grid-and-cloud-engine"
-           version="{{ fg_GridnCloudEngine_gitver }}"
-           force=yes
+      git:
+        repo: "{{ fg_GridnCloudEngine_git }}"
+        dest: "/home/{{ fg_user }}/grid-and-cloud-engine"
+        version: "{{ fg_GridnCloudEngine_gitver }}"
+        force: yes
+      when: gncengdir.stat.exists
+
+    # Modify file system ownership to extracted repositories
     - name: chown_fgAPIServerRepo | Change ownership for fgAPIServer repo to futuregateway user
-      file: path="/home/{{ fg_user }}/{{ item }}" owner="{{ fg_user }}" group="{{ fg_user }}" mode=0775 recurse=yes
+      file:
+        path: "/home/{{ fg_user }}/{{ item }}"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0775
+        recurse: yes
       with_items:
          - APIServerDaemon
          - jsaga-adaptor-rocci
          - grid-and-cloud-engine
          - fgSetup
-    # Package installation: mysql client (RedHat+Deb)
+
+    #
+    # Software packages
+    #
+
+    # Package installation: mysql client (RedHat)
     - name: ReqPackages_yum | Install required packages for RedHat
-      yum: name="{{ item }}" state=latest
+      yum:
+        name: "{{ item }}"
+        state: latest
       with_items:
          - mariadb
          - java-1.7.0-openjdk
          - java-1.7.0-openjdk-devel
-         - tomcat
-         - tomcat-webapps
-         - tomcat-admin-webapps
          - ruby-devel
          - git
          - openldap
@@ -91,14 +189,15 @@
          - screen
          - jq
       when: ansible_os_family == "RedHat"
+
+    # Package installation: mysql client (Debian)
     - name: ReqPackages_apt | Install required packages for Debian
-      apt: pkg="{{ item }}" state=latest
+      apt:
+        pkg: "{{ item }}"
+        state: latest
       with_items:
          - mysql-client
          - openjdk-7-jdk
-         - tomcat7
-         - tomcat7-admin
-         - tomcat7-common
          - ant
          - maven
          - build-essential
@@ -111,30 +210,73 @@
          - screen
          - jq
       when: ansible_os_family == "Debian"
+
       # Tomcat7 installation (RedHat+Deb)
     - name: Tomcat7 | Install Tomcat7 (RedHat+Deb)
-      yum: name="{{ item }}" state=latest
+      yum:
+        name: "{{ item }}"
+        state: latest
       with_items:
          - tomcat
          - tomcat-webapps
          - tomcat-admin-webapps
       when: ansible_os_family == "RedHat"
+
+    # Tomcat7 installation (Debian)
     - name: ReqPackages_apt | Install required packages for Debian
-      apt: pkg="{{ item }}" state=latest
+      apt:
+        pkg: "{{ item }}"
+        state: latest
       with_items:
          - tomcat7
          - tomcat7-admin
          - tomcat7-common
       when: ansible_os_family == "Debian"
+
+    #
+    # GridnCloudEngine UsersTrackingDB 
+    #
+
+    # Check the GridnCloudEngine UsersTrackingDB
+    - name: utDBinst0 | UsersTracking Database creation check
+      mysql_db: 
+        name: userstracking
+        state: present
+        login_host: "{{ fg_db_host }}"
+        login_port: "{{ fg_db_port }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+      register: db_present
+    # Install the GridnCloudEngine UsersTrackingDB 
+    - name: utDBinst1 | UsersTracking Database creation and installation
+      mysql_db: 
+        name: userstracking
+        state: import
+        login_host: "{{ fg_db_host }}"
+        login_port: "{{ fg_db_port }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        target: "/home/{{ fg_user }}/grid-and-cloud-engine/UsersTrackingDB/UsersTrackingDB.sql"
+      when: db_present.changed
+
+    #
+    # Source file building: GridnCloudEngine, rOCCI adp, APIServerDaemon
+    #
+
     # Create lib directory in APIServerDaemon
+    #
+    # GridnCloudEngine and JSAGA adaptors jars must be placed
+    # inside the APIServerDaemon lib directory
+    #
     - name: ASDlib | APIServerDemon lib directory
       file:
-        path: "/home/{{ fg_user }}/APIServerDaemon/lib" 
+        path: "/home/{{ fg_user }}/APIServerDaemon/lib"
         state: directory
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
-        mode: 0755
-    # GridnCloud Engine
+        mode: 0755 
+
+    # Build GridnCloudEngine threadpool
     - name: gncTPool_bld | Build the GridnCloudEngine threadpool
       become: yes
       become_user: futuregateway
@@ -143,6 +285,7 @@
         chdir: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine-threadpool"
         creates: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine-threadpool/target/grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar"
       register: gnceng_tp
+    # Place GridnCloudEngine threadpool jar into APIServerdaemon lib/
     - name: gncTPool_cpy | Copy the GridnCloudEngine threadpool jar to APIServerDaemon lib directory
       copy:
         src: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine-threadpool/target/grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar"
@@ -151,7 +294,9 @@
         group: "{{ fg_user }}"
         mode: 0644
       when: gnceng_tp.changed
-    - name: gncMain_bld | Build the GridnCloudEngine main class
+
+    # Build GridnCloudEngine main classes
+    - name: gncMain_bld | Build the GridnCloudEngine main classes
       become: yes
       become_user: futuregateway
       command: mvn clean install -Dmaven.compiler.source=1.6 -Dmaven.compiler.target=1.6
@@ -159,6 +304,7 @@
         chdir: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine_M"
         creates: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine_M/target/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar"
       register: gnceng_M
+    # Place GridnCloudEngine main classes jar into APIServerdaemon lib/
     - name: gncMain_cpy | Copy the GridnCloudEngine main jar to APIServerDaemon lib directory
       copy:
         src: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine_M/target/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar"
@@ -167,8 +313,14 @@
         group: "{{ fg_user }}"
         mode: 0644
       when: gnceng_M.changed
-    # Build Adaptors
-    # jsaga-rocci-adaptor
+
+    # Please check that all adaptors jars have been downloaded ... 
+
+    #
+    # Build custom JSAGA adaptors
+    #
+
+    # Build jsaga-rocci-adaptor
     - name: rocci_bld | Build jsaga-rocci-adaptor
       become: yes
       become_user: futuregateway
@@ -177,6 +329,7 @@
         chdir: "/home/{{ fg_user }}/jsaga-adaptor-rocci"
         creates: "/home/{{ fg_user }}/jsaga-adaptor-rocci/dist/jsaga-adaptor-rocci.jar"
       register: rocci
+    # Place jsaga-rocci-adaptor jar into APIServerdaemon lib/
     - name: rocci_cpy | Copy jsaga-rocci-adaptor jar to APIServerDaemon lib directory
       copy:
         src: "/home/{{ fg_user }}/jsaga-adaptor-rocci/dist/jsaga-adaptor-rocci.jar"
@@ -185,25 +338,14 @@
         group: "{{ fg_user }}"
         mode: 0644
       when: rocci.changed
-    # Install the GridnCloudEngine UsersTrackingDB
-    - name: utDBinst0 | UsersTracking Database creation check 
-      mysql_db: name=userstracking
-                state=present
-                login_host="{{ fg_db_host }}"
-                login_port="{{ fg_db_port }}"
-                login_user=root
-                login_password="{{ mysql_root_password }}"
-      register: db_present
-    - name: utDBinst1 | UsersTracking Database creation and installation
-      mysql_db: name=userstracking
-                state=import
-                login_host="{{ fg_db_host }}"
-                login_port="{{ fg_db_port }}"
-                login_user=root
-                login_password="{{ mysql_root_password }}"
-                target="/home/{{ fg_user }}/grid-and-cloud-engine/UsersTrackingDB/UsersTrackingDB.sql"
-      when: db_present.changed
+
+    #
     # APIServerDaemon .properties files
+    #
+    # Use template files to create .properties files
+    #
+
+    # log4j.properties files
     - name: log4j_prop | Configure log4j.properties file
       template:
         src: templates/asd_log4j.properties.j2
@@ -212,7 +354,7 @@
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0644 
-    # APIServerDaemon .properties file
+    # APIServerDaemon.properties file
     - name: asd_prop | Configure APIServerDaemon file
       template:
         src: templates/asd_APIServerDaemon.properties.j2
@@ -221,7 +363,12 @@
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0644
+
+    #
     # Build APIServerDaemon
+    #
+
+    # Create the web/WEB-INF/lib
     - name: mkwebinflib | create APIServerDaemon web/WEB-INF/lib dir
       file:
         path: "/home/{{ fg_user }}/APIServerDaemon/web/WEB-INF/lib"
@@ -229,6 +376,7 @@
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0755
+    # Build APIServerDaemon war file
     - name: bld_asdwar | Build the APIServerDaemon war file
       become: yes
       become_user: futuregateway
@@ -238,7 +386,7 @@
         chdir: "/home/{{ fg_user }}/APIServerDaemon"
         creates: "/home/{{ fg_user }}/APIServerDaemon/dist/APIServerDaemon.war"
       register: asdwar
-    # Deploy APIServerDaemon war file
+    # Deploy APIServerDaemon war file into Tomcat webapps dir
     - name: dplyasd | Deploy APIServerDaemon.war file
       copy:
         src: "/home/{{ fg_user }}/APIServerDaemon/dist/APIServerDaemon.war"
@@ -247,13 +395,34 @@
         group: "{{ fg_user }}"
         mode: 0644
       when: asdwar.changed
+
+    #
     # OCCI cli from EGI-fedcloud
+    #
+    # This also installs the GSI environment and VOMS configuration
+    #
+
+    # Use EGI FedCloud installation script
     - name: occicli | Install EGI-FedCloud OCCI cli
       shell: curl -L http://go.egi.eu/fedcloud.ui | /bin/bash -
       args:
         executable: /bin/bash
         creates: /usr/bin/occi
       register: occi
+
+    #
+    # VOMS configuration
+    #
+    # Each VO requires three steps:
+    #  1) Create the VO directory
+    #  2) Place the VO configuration entry (lsc) in vomsdir
+    #  3) Place the VO description in vomses dir
+
+
+    #
+    # vo.indigo-datacloud.eu
+    #
+
     # VOMS conf: vo.indigo-datacloud.eu (dir)
     - name: vomsconf | Confoguring vo.indigo-datacloud.eu
       file:
@@ -278,6 +447,11 @@
         group: "{{ fg_user }}"
         owner: "{{ fg_user }}"
         mode: 644
+
+    #
+    # Environment settings
+    #
+
     # Environment directory 
     - name: EnvDir | Environment settings 
       file: 
@@ -289,29 +463,74 @@
         recurse: yes
     # Commons environment
     - name: EnvCommon | FutureGateway commons environment settings
-      copy: src="/home/{{ fg_user }}/fgSetup/setup_commons.sh"
-            dest="/home/{{ fg_user }}/.fgprofile/commons"
-            owner="{{ fg_user }}"
-            group="{{ fg_user }}"
-            mode=0644
-    # Load main environment settings
+      copy:
+        src: "/home/{{ fg_user }}/fgSetup/setup_commons.sh"
+        dest: "/home/{{ fg_user }}/.fgprofile/commons"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
+    # Load db environment settings
     - name: EnvFGDB | FGDB environment setting loader
-      copy: content="{{ fg_fgdb }}"
-            dest="/home/{{ fg_user }}/.fgprofile/fgdb"
-            owner="{{ fg_user }}"
-            group="{{ fg_user }}"
-            mode=0644
-    - name: EnvFGAPIServer | fgAPIServer environment setting loader
-      copy: content="{{ fg_apiserverdaemon }}"
-            dest="/home/{{ fg_user }}/.fgprofile/apiserverdaemon"
-            owner="{{ fg_user }}"
-            group="{{ fg_user }}"
-            mode=0644
+      copy: 
+        content: "{{ fg_fgdb }}"
+        dest: "/home/{{ fg_user }}/.fgprofile/fgdb"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
+    # Load specific APIServerDaemon environment
+    - name: EnvAPIServerDaemon | APIServerDaemon environment setting loader
+      copy: 
+        content: "{{ fg_apiserverdaemon }}"
+        dest: "/home/{{ fg_user }}/.fgprofile/apiserverdaemon"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
     # Load FutureGateway profile components in bash_profile file
     - name: EnvProfile | Insert load profile line in .profile file
-      blockinfile: block="for f in $(find $HOME/.fgprofile -type f); do source $f; done {{ '#' }} FGLOADENV"
-                   create=yes
-                   dest="/home/{{ fg_user }}/.profile"
-                   owner="{{ fg_user }}"
-                   group="{{ fg_user }}"
-                   mode=0644
+      blockinfile:
+        block: "for f in $(find $HOME/.fgprofile -type f); do source $f; done {{ '#' }} FGLOADENV"
+        create: yes
+        dest: "/home/{{ fg_user }}/.profile"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
+
+    #
+    # Baseline configuration
+    #
+
+    #
+    # Configure FutureGateway DB accordingly to the tester user
+    #
+    # FutureGateway provides a helloworld and sayhello default applications
+    # in order to use them the infrastructure settings must be changed
+    # with the APIServerDaemon tester user credentials
+    #
+
+    # Configure the SSH infrastructure host parameter
+    - name: sshtst_host | Configure SSH infrastructure host parameter
+      become: yes
+      become_user: futuregateway
+      shell: . /home/{{ fg_user }}/.profile;asdb "update infrastructure_parameter set pvalue='ssh://{{inventory_hostname}}' where pname='jobservice' and infra_id=1;"
+      args:
+        executable: /bin/bash
+        chdir: "/home/{{ fg_user }}"
+      #when: only 1st time APIServerDaemon installs
+    # Configure the SSH infrastructure user parameter
+    - name: sshtst_user | Configure SSH infrastructure user parameter
+      become: yes
+      become_user: futuregateway
+      shell: . /home/{{ fg_user }}/.profile;asdb "update infrastructure_parameter set pvalue='{{ tester_user }}' where pname='username' and infra_id=1;"
+      args:
+        executable: /bin/bash
+        chdir: "/home/{{ fg_user }}"
+      #when: only 1st time APIServerDaemon installs
+    # Configure the SSH infrastructure user password parameter
+    - name: sshtst_pass | Configure SSH infrastructure password parameter
+      become: yes
+      become_user: futuregateway
+      shell: . /home/{{ fg_user }}/.profile;asdb "update infrastructure_parameter set pvalue='{{ tester_pass }}' where pname='password' and infra_id=1;"
+      args:
+        executable: /bin/bash
+        chdir: "/home/{{ fg_user }}"
+      #when: only 1st time APIServerDaemon installs

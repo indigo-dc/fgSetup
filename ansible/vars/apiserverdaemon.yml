@@ -9,8 +9,8 @@
 fg_appserver: 'tomcat'
 
 # FutureGateway jobtester user
-tester_user: jobtester
-tester_pass: j0bt3st3r
+tester_user: jobtest
+tester_pass: j0bt3st
 
 # GridnCloudEngine UsersTrackingDB
 ut_db_jndi: jdbc/UserTrackingPool
