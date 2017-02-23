@@ -111,7 +111,7 @@
         dest: "/home/{{ fg_user }}/APIServerDaemon"
         version: "{{ fg_APIServerDaemon_gitver }}"
         force: yes
-      when: asddir.stat.exists
+      when: not asddir.stat.exists
 
     # Stat the fgSetup directory
     - name: fgSetup.dir | Get stat of fgSetup dir
@@ -125,7 +125,7 @@
         dest: "/home/{{ fg_user }}/fgSetup"
         version: "{{ fg_fgSetup_gitver }}"
         force: yes
-      when: fgsdir.stat.exists
+      when: not fgsdir.stat.exists
 
     # Stat the rOCCI directory
     - name: rOCCIadp.dir | Get stat of rOCCI adaptor dir
@@ -139,7 +139,7 @@
         dest: "/home/{{ fg_user }}/jsaga-adaptor-rocci"
         version: "{{ fg_rOCCI_adaptor_gitver }}"
         force: yes
-      when: roccidir.stat.exists
+      when: not roccidir.stat.exists
 
     # Stat the GridnCloudEngine directory
     - name: GridnCloudEngine.dir | Get stat of GridnCloudEngine dir
@@ -153,7 +153,7 @@
         dest: "/home/{{ fg_user }}/grid-and-cloud-engine"
         version: "{{ fg_GridnCloudEngine_gitver }}"
         force: yes
-      when: gncengdir.stat.exists
+      when: not gncengdir.stat.exists
 
     # Modify file system ownership to extracted repositories
     - name: chown_fgAPIServerRepo | Change ownership for fgAPIServer repo to futuregateway user
@@ -180,6 +180,7 @@
         state: latest
       with_items:
          - mariadb
+         - mysql-connector-odbc
          - java-1.7.0-openjdk
          - java-1.7.0-openjdk-devel
          - ruby-devel
@@ -197,6 +198,7 @@
         state: latest
       with_items:
          - mysql-client
+         - libmysql-java
          - openjdk-7-jdk
          - ant
          - maven
@@ -232,6 +234,64 @@
          - tomcat7-admin
          - tomcat7-common
       when: ansible_os_family == "Debian"
+
+    #
+    # Tomcat configuration
+    #
+    
+    # Tomcat users.xml
+    - name: tomcat_usr | Tomcat users.xml configuration
+      blockinfile:
+        dest: /var/lib/tomcat7/conf/tomcat-users.xml
+        marker: "<!-- {mark} ANSIBLE MANAGED BLOCK -->"
+        insertbefore: "</tomcat-users>"
+        block: | 
+                 <role rolename="manager-gui"/>
+                 <role rolename="manager-script"/>
+                 <role rolename="tomcat"/>
+                 <role rolename="liferay"/>
+                 <user username="{{ tomcat_user }}" password="{{ tomcat_pass }}" roles="tomcat,liferay,manager-gui,manager-script"/>
+        backup: yes
+      register: tomcat_usr
+
+    # jdbc/UserTrackingPool + jdbc/gehibernatepool
+    - name: tomcat_utpool | Tomcat jdbc/UserTrackingPool in server.xml configuration
+      blockinfile:
+        dest: /var/lib/tomcat7/conf/server.xml 
+        marker: "<!-- {mark} ANSIBLE MANAGED BLOCK -->"
+        insertbefore: "</GlobalNamingResources>"
+        block: |
+                 <Resource name="jdbc/UserTrackingPool"
+                           auth="Container"
+                           type="javax.sql.DataSource"
+                           username="{{ ut_db_user }}"
+                           password="{{ ut_db_password }}"
+                           driverClassName="com.mysql.jdbc.Driver"
+                           description="UsersTrackingDB connection"
+                           url="jdbc:mysql://{{ ut_db_host }}:{{ ut_db_port }}/{{ ut_db_name }}"
+                           maxTotal="100"
+                           maxIdle="30"
+                           maxWaitMillis="10000"/>
+                 <Resource name="jdbc/gehibernatepool"
+                           auth="Container"
+                           type="javax.sql.DataSource"
+                           username="{{ ut_db_user }}"
+                           password="{{ ut_db_password }}"
+                           driverClassName="com.mysql.jdbc.Driver"
+                           description="UsersTrackingDB connection"
+                           url="jdbc:mysql://{{ ut_db_host }}:{{ ut_db_port }}/{{ ut_db_name }}"
+                           maxTotal="100"
+                           maxIdle="30"
+                           maxWaitMillis="10000"/>
+        backup: yes
+      register: tomcat_res
+
+    # mysql-connector library
+    - name: mysql-connector | Setup mysql-connector library for jdbc
+      shell: cd /usr/share/tomcat7/lib/; ln -s ../../java/mysql-connector-java.jar mysql-connector-java.jar
+      args:
+        executable: /bin/bash
+        creates: /usr/share/tomcat7/lib/mysql-connector-java.jar
 
     #
     # GridnCloudEngine UsersTrackingDB 
@@ -285,6 +345,11 @@
         chdir: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine-threadpool"
         creates: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine-threadpool/target/grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar"
       register: gnceng_tp
+    # Stat grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar
+    - name: gnceng_thrpool.jar | Stat grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar
+      stat:
+        path: "/home/{{ fg_user }}/APIServerDaemon/lib/grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar"
+      register: gnceng_tp_jar 
     # Place GridnCloudEngine threadpool jar into APIServerdaemon lib/
     - name: gncTPool_cpy | Copy the GridnCloudEngine threadpool jar to APIServerDaemon lib directory
       copy:
@@ -293,7 +358,7 @@
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0644
-      when: gnceng_tp.changed
+      when: gnceng_tp.changed or not gnceng_tp_jar.stat.exists
 
     # Build GridnCloudEngine main classes
     - name: gncMain_bld | Build the GridnCloudEngine main classes
@@ -304,6 +369,11 @@
         chdir: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine_M"
         creates: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine_M/target/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar"
       register: gnceng_M
+    # Stat grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar
+    - name: grid-and-cloud-engine_M.jar | Stat grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar 
+      stat:        
+        path: "/home/{{ fg_user }}/APIServerDaemon/lib/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar"
+      register: gnceng_m_jar
     # Place GridnCloudEngine main classes jar into APIServerdaemon lib/
     - name: gncMain_cpy | Copy the GridnCloudEngine main jar to APIServerDaemon lib directory
       copy:
@@ -312,7 +382,7 @@
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0644
-      when: gnceng_M.changed
+      when: gnceng_M.changed or not gnceng_m_jar.stat.exists
 
     # Please check that all adaptors jars have been downloaded ... 
 
@@ -494,6 +564,13 @@
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0644
+
+    # Restart tomcat if necessary
+    - name: restarttomcat | Restart Tomcat service
+      service:
+        name: tomcat7
+        state: restarted
+      when: tomcat_usr.changed or tomcat_res
 
     #
     # Baseline configuration

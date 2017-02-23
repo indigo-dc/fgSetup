@@ -8,6 +8,10 @@
 # ... - Add your own PTV service installation
 fg_appserver: 'tomcat'
 
+# Tomcat values
+tomcat_user: tomcat
+tomcat_pass: t0mc@t_p@ssw0rd
+
 # FutureGateway jobtester user
 tester_user: jobtest
 tester_pass: j0bt3st

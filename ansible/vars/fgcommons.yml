@@ -22,7 +22,7 @@ fg_passauth: yes
 fg_db_host: "{{ inventory_hostname }}"
 fg_db_port: 3306
 fg_db_name: fgapiserver
-fg_db_user: fgapiserver 
+fg_db_user: fgapiserver
 fg_db_password: fgapiserver_password
 fg_db_schemaver: 0.0.10
 
