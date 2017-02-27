@@ -625,3 +625,8 @@
         executable: /bin/bash
         chdir: "/home/{{ fg_user }}"
       #when: only 1st time APIServerDaemon installs
+
+    # Updatedb
+    - name: updatedb | Execute updatedb command
+    - command: updatedb
+    
