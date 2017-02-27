@@ -555,7 +555,7 @@
     #
 
     # VOMS conf: vo.indigo-datacloud.eu (dir)
-    - name: vomsconf | Confoguring vo.indigo-datacloud.eu
+    - name: vomsconf1_3 | Configuring vo.indigo-datacloud.eu (dir)
       file:
         dest: /etc/grid-security/vomsdir/vo.indigo-datacloud.eu
         group: "{{ fg_user }}"
@@ -563,7 +563,7 @@
         mode: 0755 
         state: directory 
     # VOMS conf: vo.indigo-datacloud.eu (lsc)
-    - name: vomsconf | Confoguring vo.indigo-datacloud.eu
+    - name: vomsconf2_3 | Configuring vo.indigo-datacloud.eu (lsc)
       copy:
         content: "{{ voms_indigo_lsc }}"
         dest: /etc/grid-security/vomsdir/vo.indigo-datacloud.eu/voms01.ncg.ingrid.pt.lsc 
@@ -571,7 +571,7 @@
         owner: "{{ fg_user }}"
         mode: 644
     # VOMS conf: vo.indigo-datacloud.eu (vomses)
-    - name: vomsconf | Confoguring vo.indigo-datacloud.eu
+    - name: vomsconf3_3 | Configuring vo.indigo-datacloud.eu (vomses)
       copy:
         content: "{{ voms_indigo_vomses }}"
         dest: /etc/vomses/vo.indigo-datacloud.eu-voms01.ncg.ingrid.pt 
@@ -628,5 +628,5 @@
 
     # Updatedb
     - name: updatedb | Execute updatedb command
-    - command: updatedb
+      command: updatedb
     
