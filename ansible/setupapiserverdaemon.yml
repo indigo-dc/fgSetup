@@ -584,7 +584,7 @@
       service:
         name: tomcat7
         state: restarted
-      when: tomcat_usr.changed or tomcat_res
+      when: tomcat_usr.changed or tomcat_res.changed
 
     #
     # Baseline configuration
