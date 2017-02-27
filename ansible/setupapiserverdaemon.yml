@@ -89,9 +89,9 @@
     # SSH keyscanning, avoid (yes/no) request SSHing among same host users
     #
     - name: sshkeyscan | Configure SSH keyscan 
-      become: yes
-      become_user: futuregateway
-      shell: ssh-keyscan -H -t rsa localhost >> $HOME/.ssh/known_hosts
+      #become: yes
+      #become_user: futuregateway
+      shell: su - futuregateway -c "ssh-keyscan -H -t rsa localhost >> /home/{{ fg_user }}/.ssh/known_hosts"
       args:
         executable: /bin/bash
         chdir: "/home/{{ fg_user }}"
@@ -329,6 +329,53 @@
       when: db_present.changed
 
     #
+    # Environment settings
+    #
+
+    # Environment directory 
+    - name: EnvDir | Environment settings
+      file:
+        path: "/home/{{ fg_user }}/.fgprofile"
+        state: directory
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0775
+        recurse: yes
+    # Commons environment
+    - name: EnvCommon | FutureGateway commons environment settings
+      copy:
+        src: "/home/{{ fg_user }}/fgSetup/setup_commons.sh"
+        dest: "/home/{{ fg_user }}/.fgprofile/commons"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
+    # Load db environment settings
+    - name: EnvFGDB | FGDB environment setting loader
+      copy:
+        content: "{{ fg_fgdb }}"
+        dest: "/home/{{ fg_user }}/.fgprofile/fgdb"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
+    # Load specific APIServerDaemon environment
+    - name: EnvAPIServerDaemon | APIServerDaemon environment setting loader
+      copy:
+        content: "{{ fg_apiserverdaemon }}"
+        dest: "/home/{{ fg_user }}/.fgprofile/apiserverdaemon"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
+    # Load FutureGateway profile components in bash_profile file
+    - name: EnvProfile | Insert load profile line in .profile file
+      blockinfile:
+        block: "for f in $(find $HOME/.fgprofile -type f); do source $f; done {{ '#' }} FGLOADENV"
+        create: yes
+        dest: "/home/{{ fg_user }}/.profile"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
+
+    #
     # Source file building: GridnCloudEngine, rOCCI adp, APIServerDaemon
     #
 
@@ -531,53 +578,6 @@
         group: "{{ fg_user }}"
         owner: "{{ fg_user }}"
         mode: 644
-
-    #
-    # Environment settings
-    #
-
-    # Environment directory 
-    - name: EnvDir | Environment settings 
-      file: 
-        path: "/home/{{ fg_user }}/.fgprofile"
-        state: directory
-        owner: "{{ fg_user }}"
-        group: "{{ fg_user }}"
-        mode: 0775
-        recurse: yes
-    # Commons environment
-    - name: EnvCommon | FutureGateway commons environment settings
-      copy:
-        src: "/home/{{ fg_user }}/fgSetup/setup_commons.sh"
-        dest: "/home/{{ fg_user }}/.fgprofile/commons"
-        owner: "{{ fg_user }}"
-        group: "{{ fg_user }}"
-        mode: 0644
-    # Load db environment settings
-    - name: EnvFGDB | FGDB environment setting loader
-      copy: 
-        content: "{{ fg_fgdb }}"
-        dest: "/home/{{ fg_user }}/.fgprofile/fgdb"
-        owner: "{{ fg_user }}"
-        group: "{{ fg_user }}"
-        mode: 0644
-    # Load specific APIServerDaemon environment
-    - name: EnvAPIServerDaemon | APIServerDaemon environment setting loader
-      copy: 
-        content: "{{ fg_apiserverdaemon }}"
-        dest: "/home/{{ fg_user }}/.fgprofile/apiserverdaemon"
-        owner: "{{ fg_user }}"
-        group: "{{ fg_user }}"
-        mode: 0644
-    # Load FutureGateway profile components in bash_profile file
-    - name: EnvProfile | Insert load profile line in .profile file
-      blockinfile:
-        block: "for f in $(find $HOME/.fgprofile -type f); do source $f; done {{ '#' }} FGLOADENV"
-        create: yes
-        dest: "/home/{{ fg_user }}/.profile"
-        owner: "{{ fg_user }}"
-        group: "{{ fg_user }}"
-        mode: 0644
 
     # Restart tomcat if necessary
     - name: restarttomcat | Restart Tomcat service
