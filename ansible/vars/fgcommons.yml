@@ -35,6 +35,11 @@ fg_fgdb: |
          # Very specific FGDB service component environment must be set here
          #
          # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+         # FutureGateway location
+         export FGLOCATION=$HOME
+
+         # FGDB settings
          export FGDB_HOST={{ fg_db_host }}
          export FGDB_PORT={{ fg_db_port }}
          export FGDB_USER={{ fg_db_user }}
