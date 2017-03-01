@@ -465,6 +465,8 @@ utdbr() {
 # $5 - mysql command line options
 # $6 - DB name
 # $7 - DB command to execute
+# $8 - Output (default stdout)
+# $9 - Error (default stderr)
 dbcn() {
     DB_HOST=$1 
     DB_PORT=$2
@@ -473,6 +475,8 @@ dbcn() {
     DB_OPTS=$5
     DB_NAME=$6
     DB_CMD=$7
+    DB_OUT=$8
+    DB_ERR=$9
     if [ "$MYSQL" = "" ]; then
        MYSQL=$(which mysql)
        if [ "$MYSQL" = "" ]; then
@@ -480,10 +484,15 @@ dbcn() {
            return 1
        fi
     fi
-    #CMD="$MYSQL -h $DB_HOST -P $DB_PORT -u $DB_USER $([ \"$DB_PASSWD\" != \"\" ] && echo '-p'$DB_PASSWD) $DB_OPTS $DB_NAME $DB_CMD"
-    #eval "$CMD"
-    #echo "$MYSQL -h $DB_HOST -P $DB_PORT -u $DB_USER $DB_PASSWD $DB_OPTS $DB_NAME $DB_CMD"
-    eval $MYSQL -h $DB_HOST -P $DB_PORT -u $DB_USER $DB_PASSWD $DB_OPTS $DB_NAME $DB_CMD 2>/dev/null
+    DB_OUT_OPT=""
+    if [ "$DB_OUT" != "" ]; then
+      DB_OUT_OPT="> $DB_OUT"
+    fi
+    DB_ERR_OPT=""
+    if [ "$DB_ERR" != "" ]; then
+      DB_ERR_OPT="2> $DB_ERR"
+    fi
+    eval $MYSQL -h $DB_HOST -P $DB_PORT -u $DB_USER $DB_PASSWD $DB_OPTS $DB_NAME "$DB_CMD" $DB_OUT_OPT $DB_ERR_OPT 
     RES=$?
     return $RES
 }
@@ -495,7 +504,7 @@ dbcn() {
 # $3 Repository tag/version
 git_clone_or_update() {
 
-	GCO_GITBASE="$1"
+    GCO_GITBASE="$1"
     GCO_GITREPO="$2"
     GCO_GITTAG="$3"
      
