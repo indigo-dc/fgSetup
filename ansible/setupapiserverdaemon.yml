@@ -415,6 +415,15 @@
         group: "{{ fg_user }}"
         mode: 0644
       when: gnceng_tp.changed or not gnceng_tp_jar.stat.exists
+    # Place GridnCloudEngine threadpool lib/ content into APIServerdaemon lib/
+    - name: gncTPool_lib | Copy the GridnCloudEngine threadpool lib/ content to APIServerDaemon lib directory
+      copy:
+        src: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine-threadpool/target/lib/"
+        dest: "/home/{{ fg_user }}/APIServerDaemon/lib/"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
+      when: gnceng_tp.changed or not gnceng_tp_jar.stat.exists
 
     # Build GridnCloudEngine main classes
     - name: gncMain_bld | Build the GridnCloudEngine main classes
@@ -435,6 +444,15 @@
       copy:
         src: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine_M/target/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar"
         dest: "/home/{{ fg_user }}/APIServerDaemon/lib/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar"
+        owner: "{{ fg_user }}"
+        group: "{{ fg_user }}"
+        mode: 0644
+      when: gnceng_M.changed or not gnceng_m_jar.stat.exists
+    # Place GridnCloudEngine main lib/ content into APIServerdaemon lib/
+    - name: gncMain_lib | Copy the GridnCloudEngine main lib/ content to APIServerDaemon lib directory
+      copy: 
+        src: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine_M/target/lib/"
+        dest: "/home/{{ fg_user }}/APIServerDaemon/lib/"
         owner: "{{ fg_user }}"
         group: "{{ fg_user }}"
         mode: 0644
