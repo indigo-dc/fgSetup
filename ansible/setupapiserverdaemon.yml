@@ -105,7 +105,7 @@
       when: sshdcfg.changed or tstuser.changed or ssh_host_disabled.changed
     
     #
-    # GIT Repositories: APIServerDaemon, fgSetup, rOCCI, GridmCloudEngine
+    # GIT Repositories: APIServerDaemon, fgSetup, rOCCI, GridnCloudEngine
     #
 
     # Stat the APIServerDaemon directory 
@@ -247,6 +247,15 @@
     #
     # Tomcat configuration
     #
+
+    # Tomcat dir permissions
+    - name: tomcat_dir | Setup tomcat directory permissions
+      file:
+          path: /usr/share/tomcat7 
+          state: directory
+          mode: 0755
+          owner: tomcat7
+          recurse: yes
     
     # Tomcat users.xml
     - name: tomcat_usr | Tomcat users.xml configuration
@@ -280,7 +289,8 @@
                            url="jdbc:mysql://{{ ut_db_host }}:{{ ut_db_port }}/{{ ut_db_name }}"
                            maxTotal="100"
                            maxIdle="30"
-                           maxWaitMillis="10000"/>
+                           maxWaitMillis="10000"
+                           interactiveClient="true"/>
                  <Resource name="jdbc/gehibernatepool"
                            auth="Container"
                            type="javax.sql.DataSource"
@@ -291,7 +301,8 @@
                            url="jdbc:mysql://{{ ut_db_host }}:{{ ut_db_port }}/{{ ut_db_name }}"
                            maxTotal="100"
                            maxIdle="30"
-                           maxWaitMillis="10000"/>
+                           maxWaitMillis="10000"
+                           interactiveClient="true"/>
         backup: yes
       register: tomcat_res
 
@@ -620,7 +631,7 @@
     - name: sshtst_host | Configure SSH infrastructure host parameter
       become: yes
       become_user: futuregateway
-      shell: . /home/{{ fg_user }}/.profile;asdb "update infrastructure_parameter set pvalue='ssh://{{inventory_hostname}}' where pname='jobservice' and infra_id=1;"
+      shell: . /home/{{ fg_user }}/.profile;asdb "update infrastructure_parameter set pvalue='ssh://{{test_ssh_host}}:{{test_ssh_port}}' where pname='jobservice' and infra_id=1;"
       args:
         executable: /bin/bash
         chdir: "/home/{{ fg_user }}"

@@ -18,8 +18,8 @@ tester_pass: j0bt3st
 
 # GridnCloudEngine UsersTrackingDB
 ut_db_jndi: jdbc/UserTrackingPool
-ut_db_host: localhost
-ut_db_port: 3306
+ut_db_host: "{{ host_ut_db_host }}"
+ut_db_port: "{{ mysql_port }}" 
 ut_db_user: tracking_user
 ut_db_password: usertracking
 ut_db_name: userstracking
@@ -89,9 +89,14 @@ fg_apiserverdaemon: |
                     # Set CATALINA variables
                     catalina_env
 
-                    export UTDB_HOST={{ ut_db_host }}
-                    export UTDB_PORT={{ ut_db_port }}
-                    export UTDB_USER={{ ut_db_user }}
-                    export UTDB_PASSWD={{ ut_db_password }}
-                    export UTDB_NAME={{ ut_db_name }}
+                    export UTDB_HOST="{{ ut_db_host }}"
+                    export UTDB_PORT="{{ ut_db_port }}"
+                    export UTDB_USER="{{ ut_db_user }}"
+                    export UTDB_PASSWD="{{ ut_db_password }}"
+                    export UTDB_NAME="{{ ut_db_name }}"
                     export UTDB_OPTS=''
+                    export UTDB_ROOTPWD="{{ mysql_root_password }}"
+
+# Testing JSAGA with SSH connection
+test_ssh_host: "{{ jsaga_ssh_host }}"
+test_ssh_port: "{{ jsaga_ssh_port }}"

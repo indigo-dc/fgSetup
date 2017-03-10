@@ -10,7 +10,7 @@
   become: yes
   become_method: sudo
   roles:
-    - {role: geerlingguy.mysql, mysql_port: "{{ fg_db_port }}" }
+    - {role: geerlingguy.mysql }
     - {role: geerlingguy.git }
   tasks:
     - name: FGUser | Creatign FutureGateway user

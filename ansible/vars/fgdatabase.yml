@@ -4,4 +4,4 @@
 
 mysql_root_password_update: yes
 mysql_root_password: rootpwd 
-
+mysql_port: 3306
