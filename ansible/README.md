@@ -6,7 +6,7 @@ Different roles are available for each specific FutureGateway compoenent; in par
 * APIServer (APIServerDaemon)
 * Liferay62 *(not available yet)*
 * Liferay7 *(not available yet)*
-* [LiferayIAM](https://galaxy.ansible.com/indigo-dc/ansible-role-liferay-iam/) is availble on ansible galaxy
+* [LiferayIAM](https://galaxy.ansible.com/indigo-dc/ansible-role-liferay-iam/) role is availble on ansible galaxy
 
 ## Usage
 Before to install any node; verify that the account used to access the remote machine can connect via ssh as root without prompting for password. This is achieved properly configuring the ssh key file exchange.
