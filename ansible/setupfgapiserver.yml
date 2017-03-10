@@ -98,6 +98,10 @@
     - name: startscreen | Starting PTV screen session
       shell: PTVSESSION=$(su - futuregateway -c "screen -ls | grep PTV") ; if [ "${PTVSESSION}" = "" ]; then su - futuregateway -c "screen -dmS PTV /bin/bash" && su - futuregateway -c "screen -S PTV -X stuff 'cd fgAPIServer\n. venv/bin/activate\n./fgapiserver_ptv.py\n'"; else echo $PTVSESSION; fi
       when: fg_ptvservice == "test"
+    # Configure fgapiserver on 8888 (test)
+    - name: startscrfg | Starting fgapiserver screen nession
+      shell: PTVSESSION=$(su - futuregateway -c "screen -ls | grep fgapiserver") ; if [ "${PTVSESSION}" = "" ]; then su - futuregateway -c "screen -dmS fgapiserver /bin/bash" && su - futuregateway -c "screen -S fgapiserver -X stuff 'cd fgAPIServer\n. venv/bin/activate\n./fgapiserver.py\n'"; else echo $PTVSESSION; fi
+      when: fg_ptvservice == "test"
     # Environment directory 
     - name: EnvDir | Environment settings 
       file: path=/home/{{ fg_user }}/.fgprofile state=directory owner={{ fg_user }} group={{ fg_user }} mode=0775 recurse=yes
