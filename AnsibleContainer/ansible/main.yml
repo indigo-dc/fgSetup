@@ -1,0 +1,36 @@
+# This should be your Ansible playbooks to provision your containers.
+# An inventory will be automatically created using the names of the services
+# from your container.yml file.
+# Add any roles or other modules you'll need to this directory too.
+# For many examples of roles, check out Ansible Galaxy: https://galaxy.ansible.com/
+#
+---
+- hosts: all
+  gather_facts: false
+  tasks:
+    - name: low-down and dirty python install
+      raw: 'apt-get -y update && apt-get -y install python python-simplejson'
+
+# Do DB stuff
+- hosts: db
+  tasks:
+    - name: pull in db vars
+      include_vars: vars/db.yml
+    - name: debug prereq
+      debug:
+        var: "{{ prerequisite_packages ['ansible_os_family']}}"
+    - name: install prereq
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ prerequisite_packages['ansible_os_family'] }}"
+    - name: Add user
+      user:
+        name: "{{ fg_user }}"
+        comment: "FutureGateway user"
+    - name: Get DB from repo
+      git:
+        repo: "{{ fg_fgAPIServer_git }}"
+        dest: "/home/{{ fg_user }}/fgAPIServer"
+        force: yes
+    # - name: CustomizeSQL

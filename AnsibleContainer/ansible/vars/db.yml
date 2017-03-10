@@ -1,0 +1,17 @@
+---
+prerequisite_packages:
+  RedHat:
+    - git
+  Debian:
+    - git
+
+fg_user: futuregateway
+fg_pass: futuregateway
+
+# FutureGateway repositories settings
+fg_fgAPIServer_git: https://github.com/indigo-dc/fgAPIServer.git
+fg_fgAPIServer_gitver: master  # This should be branch, not version
+fg_fgSetup_git: https://github.com/indigo-dc/fgSetup.git
+fg_fgSetup_gitver: master # This should be branch, not version
+fg_APIServerDaemon_git: https://github.com/indigo-dc/APIServerDaemon.git
+fg_APIServerDaemon_gitver: master #  This should be branch, not version
