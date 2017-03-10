@@ -5,13 +5,21 @@ prerequisite_packages:
   Debian:
     - git
 
+# DB vars
 fg_user: futuregateway
 fg_pass: futuregateway
+fg_db_host: "{{ inventory_hostname }}"
+fg_db_port: "{{ mysql_port }}"
+fg_db_name: fgapiserver
+fg_db_user: fgapiserver
+fg_db_password: fgapiserver_password
+fg_db_schemaver: 0.0.10
+
 
 # FutureGateway repositories settings
-fg_fgAPIServer_git: https://github.com/indigo-dc/fgAPIServer.git
+fg_fgAPIServer_git: https://github.com/AAROC/fgAPIServer.git
 fg_fgAPIServer_gitver: master  # This should be branch, not version
-fg_fgSetup_git: https://github.com/indigo-dc/fgSetup.git
+fg_fgSetup_git: https://github.com/AAROC/fgSetup.git
 fg_fgSetup_gitver: master # This should be branch, not version
-fg_APIServerDaemon_git: https://github.com/indigo-dc/APIServerDaemon.git
+fg_APIServerDaemon_git: https://github.com/AAROC/APIServerDaemon.git
 fg_APIServerDaemon_gitver: master #  This should be branch, not version
