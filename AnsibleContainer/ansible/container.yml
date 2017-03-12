@@ -17,12 +17,20 @@ services:
       - "3306:3306"
     environment:
       - "MYSQL_ROOT_PASSWORD=my-secret-pw"
+      - "MYSQL_USER=fgapiserver"
+      - "MYSQL_PASSWORD=fgapiserver_password"
+    entrypoint: ["docker-entrypoint.sh"]
+    user: mysql
+    command: ["mysqld"]
+
+  apiserver:
+    image: httpd
+    ports:
+      - "80:80"
+  apidaemon:
+    image: tomcat:7
 
 registries:
   quay:
     url: https://quay.io
-    namespace: aaroc/fgapi
-  # Add optional registries used for deployment. For example:
-  #  google:
-  #    url: https://gcr.io
-  #    namespace: my-cool-project-xxxxxx
+    namespace: aaroc

@@ -1,0 +1,27 @@
+---
+fg_user: futuregateway
+prerequisite_packages:
+  RedHat:
+    - mysql
+    - mysql-devel
+    - MySQL-python
+    - gcc
+    - libffi-devel
+    - python-devel
+    - openssl-devel
+    - mod_wsgi
+    - python-pip
+    - virtualenv
+  Debian:
+    - mysql-client
+    - libmysqlclient-dev
+    - python-mysql.connector
+    - build-essential
+    - python-dev
+    - libffi-dev
+    - libssl-dev
+    - libapache2-mod-wsgi
+    - python-pip
+    - virtualenv
+
+fg_fgAPIServer_git: https://github.com/AAROC/fgAPIServer.git

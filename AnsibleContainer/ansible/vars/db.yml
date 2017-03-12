@@ -2,8 +2,10 @@
 prerequisite_packages:
   RedHat:
     - git
+    - python-mysqldb
   Debian:
     - git
+    - python-mysqldb
 
 # DB vars
 fg_user: futuregateway
@@ -14,7 +16,7 @@ fg_db_name: fgapiserver
 fg_db_user: fgapiserver
 fg_db_password: fgapiserver_password
 fg_db_schemaver: 0.0.10
-
+mysql_port: 3306
 
 # FutureGateway repositories settings
 fg_fgAPIServer_git: https://github.com/AAROC/fgAPIServer.git
