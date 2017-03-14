@@ -287,10 +287,14 @@
                            driverClassName="com.mysql.jdbc.Driver"
                            description="UsersTrackingDB connection"
                            url="jdbc:mysql://{{ ut_db_host }}:{{ ut_db_port }}/{{ ut_db_name }}"
+                           maxAge="30000"
+                           testOnBorrow="true" 
+                           testWhileIdle="true"
+                           validationInterval="0"
+                           initialSize="3"
                            maxTotal="100"
                            maxIdle="30"
-                           maxWaitMillis="10000"
-                           interactiveClient="true"/>
+                           maxWaitMillis="10000"/>
                  <Resource name="jdbc/gehibernatepool"
                            auth="Container"
                            type="javax.sql.DataSource"
@@ -299,10 +303,14 @@
                            driverClassName="com.mysql.jdbc.Driver"
                            description="UsersTrackingDB connection"
                            url="jdbc:mysql://{{ ut_db_host }}:{{ ut_db_port }}/{{ ut_db_name }}"
+                           maxAge="30000"
+                           testOnBorrow="true"
+                           testWhileIdle="true"
+                           validationInterval="0"
+                           initialSize="3"
                            maxTotal="100"
                            maxIdle="30"
-                           maxWaitMillis="10000"
-                           interactiveClient="true"/>
+                           maxWaitMillis="10000"/>
         backup: yes
       register: tomcat_res
 

@@ -22,8 +22,16 @@ ansible-playbook -i hosts setupdb.yml
 ## Galaxy roles
 The installation procedure relies on several ansible galaxy roles; you can install them by executing:
 ```sh
-sudo ansible-galaxy install geerlingguy.apache
-sudo ansible-galaxy install geerlingguy.mysql
+# All components
 sudo ansible-galaxy install geerlingguy.git
+
+# Database
+sudo ansible-galaxy install geerlingguy.mysql
+
+# fgAPIServer
+sudo ansible-galaxy install geerlingguy.apache
 sudo ansible-galaxy install bobbyrenwick.pip
+
+# LiferayIAM
+ansible-galaxy install indigo-dc.ansible-role-liferay-iam
 ```
