@@ -19,6 +19,17 @@ For instance to setup the database component just execute:
 ansible-playbook -i hosts setupdb.yml
 ```
 
+### Note
+
+On Ubuntu 14.04 default ansible is 1.5.x; in order to obtain latest ansible, please use the following instructions:
+
+```sh
+sudo apt-get install -y software-properties-common
+sudo apt-add-repository -y ppa:ansible/ansible
+sudo apt-get update -y
+sudo apt-get install -y ansible
+```
+
 ## Galaxy roles
 The installation procedure relies on several ansible galaxy roles; you can install them by executing:
 ```sh
