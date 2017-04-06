@@ -19,9 +19,13 @@ For instance to setup the database component just execute:
 ansible-playbook -i hosts setupdb.yml
 ```
 
-### Note
+### Notes
 
-On Ubuntu 14.04 default ansible is 1.5.x; in order to obtain latest ansible, please use the following instructions:
+* Ansible executes as sudo, please be sure root' SSH public key belongs to the futuregateway' authorized key.
+
+* Do not use the user 'futuregateway' to call ansible.
+
+* On Ubuntu 14.04 default ansible is 1.5.x; in order to obtain latest ansible, please use the following instructions:
 
 ```sh
 sudo apt-get install -y software-properties-common
