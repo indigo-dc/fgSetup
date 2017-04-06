@@ -21,7 +21,7 @@ ansible-playbook -i hosts setupdb.yml
 
 ### Notes
 
-* Ansible executes as sudo, please be sure root' SSH public key belongs to the futuregateway' authorized key.
+* Ansible executes as sudo, please be sure root' SSH public key belongs to the installer user authorized key.
 
 * Do not use the user 'futuregateway' to call ansible.
 
