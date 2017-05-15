@@ -1,0 +1,9 @@
+---
+username: kitchen
+ssh_key: "/home/becker/Ops/AAROC/fgSetup/recipes/.kitchen/docker_id_rsa"
+image_id: 13c580793c86
+container_id: 0defaf1542cad95ac3eaaf2e444efe4b99ee9a1232e0df11828a0b8be49cba03
+hostname: localhost
+port: 32768
+last_action: create
+last_error: Kitchen::ActionFailed

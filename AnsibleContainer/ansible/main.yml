@@ -1,0 +1,146 @@
+# This should be your Ansible playbooks to provision your containers.
+# An inventory will be automatically created using the names of the services
+# from your container.yml file.
+# Add any roles or other modules you'll need to this directory too.
+# For many examples of roles, check out Ansible Galaxy: https://galaxy.ansible.com/
+#
+---
+- hosts: all
+  gather_facts: false
+  tasks:
+    - name: low-down and dirty python install
+      raw: 'which python || apt-get -y update && apt-get -y install python python-simplejson'
+
+# Do DB stuff
+- hosts: db
+  tasks:
+    - name: pull in db vars
+      include_vars: vars/db.yml
+    - name: install prereq
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ prerequisite_packages[ansible_os_family] }}"
+    - name: Add user
+      user:
+        name: "{{ fg_user }}"
+        comment: "FutureGateway user"
+
+    -  name: Get DB from repo
+       local_action:
+         module: git
+         repo: "{{ fg_fgAPIServer_git }}"
+         dest: "/tmp/fgAPIServer"
+         force: yes
+
+    - name: Template DB config
+      template:
+        src: /tmp/fgAPIServer/fgapiserver_db.sql.j2
+        dest: /docker-entrypoint-initdb.d/fgapiserver_db.sql
+
+- hosts: apiserver
+  tasks:
+  - name: Pull in vars
+    include_vars: vars/api.yml
+
+  - name: Ensure prerequisites
+    package:
+      name: "{{ item }}"
+      state: latest
+    with_items: "{{ prerequisite_packages[ansible_os_family] }}"
+
+  - name: Ensure API user present
+    user:
+      name: "{{ fg_user }}"
+      comment: "FutureGateway user"
+
+  - name: API Server source
+    git:
+      repo: "{{ fg_fgAPIServer_git }}"
+      dest: "/home/{{ fg_user }}/fgAPIServer"
+      force: yes
+
+  - name: Ensure app prerequisites are present
+    pip:
+      requirements: "/home/{{ fg_user }}/fgAPIServer/requirements.txt"
+      virtualenv: "/home/{{ fg_user }}/fgAPIServer/venv"
+
+  - name: Template APIServer config
+    template:
+      src: templates/fgapiserver.conf.j2
+      dest: "/home/{{ fg_user }}/fgAPIServer/fgapiserver.conf"
+      backup: yes
+      owner: "{{ fg_user }}"
+      group: "{{ fg_user }}"
+      mode: 0644
+
+  - name: Ensure WSGI module enabled
+    apache2_module:
+      name: wsgi
+      state: present
+
+# Configure wsgi
+#- name: wsgimod | configure wsgi module
+
+  - name: Template WSGI config
+    template:
+      src: templates/fgapiserver_wsgi.conf.j2
+      dest: /usr/local/apache2/conf/extra/apiserver.conf
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Ensure config is enabled
+    blockinfile:
+      path: /usr/local/apache2/conf/httpd.conf
+      block: |
+                   # WSGI configuration for API Server
+                   #Include conf/extra/apiserver.conf
+      insertafter: |
+                              # Supplemental configuration
+                              #
+                              # The configuration files in the conf/extra/ directory can be
+                              # included to add extra features or to modify the default configuration of
+                              # the server, or you may simply copy their contents here and change as
+                              # necessary.
+
+
+# Configure PTV symulator (test)
+# - name: startscreen | Starting PTV screen session
+#   shell: PTVSESSION=$(su - futuregateway -c "screen -ls | grep PTV") ; if [ "${PTVSESSION}" = "" ]; then su - futuregateway -c "screen -dmS PTV /bin/bash" && su - futuregateway -c "screen -S PTV -X stuff 'cd fgAPIServer\n. venv/bin/activate\n./fgapiserver_ptv.py\n'"; else echo $PTVSESSION; fi
+#   when: fg_ptvservice == "test"
+# Configure fgapiserver on 8888 (test)
+# - name: startscrfg | Starting fgapiserver screen nession
+#   shell: PTVSESSION=$(su - futuregateway -c "screen -ls | grep fgapiserver") ; if [ "${PTVSESSION}" = "" ]; then su - futuregateway -c "screen -dmS fgapiserver /bin/bash" && su - futuregateway -c "screen -S fgapiserver -X stuff 'cd fgAPIServer\n. venv/bin/activate\n./fgapiserver.py\n'"; else echo $PTVSESSION; fi
+#   when: fg_ptvservice == "test"
+# Environment directory
+# - name: EnvDir | Environment settings
+#   file: path=/home/{{ fg_user }}/.fgprofile state=directory owner={{ fg_user }} group={{ fg_user }} mode=0775 recurse=yes
+# Commons environment
+# - name: EnvCommon | FutureGateway commons environment settings
+#   copy: src="/home/{{ fg_user }}/fgSetup/setup_commons.sh"
+#         dest="/home/{{ fg_user }}/.fgprofile/commons"
+#         owner="{{ fg_user }}"
+#         group="{{ fg_user }}"
+#         mode=0644
+# Load main environment settings
+# - name: EnvFGDB | FGDB environment setting loader
+#   copy: content="{{ fg_fgdb }}"
+#         dest="/home/{{ fg_user }}/.fgprofile/fgdb"
+#         owner="{{ fg_user }}"
+#         group="{{ fg_user }}"
+#         mode=0644
+# - name: EnvFGAPIServer | fgAPIServer environment setting loader
+#   copy: content="{{ fg_fgapiserver }}"
+#         dest="/home/{{ fg_user }}/.fgprofile/fgapiserver"
+#         owner="{{ fg_user }}"
+#         group="{{ fg_user }}"
+#         mode=0644
+# Load FutureGateway profile components in bash_profile file
+# - name: EnvProfile | Insert load profile line in .profile file
+#   blockinfile: block="for f in $(find $HOME/.fgprofile -type f); do source $f; done {{ '#' }} FGLOADENV"
+#                create=yes
+#                dest="/home/{{ fg_user }}/.profile"
+#                owner="{{ fg_user }}"
+#                group="{{ fg_user }}"
+#                mode=0644
