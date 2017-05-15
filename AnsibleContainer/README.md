@@ -13,3 +13,11 @@ You need AnsibleContainer. Go get it, I'll wait...
 Now you can Orchestrate your Containers with Containers.
 
 `ansible-container --var-file vars.yml build`
+
+# Containers
+
+The service orchestration is in `ansible/container.yml` This describes the services as well as the registries. Containers are pushed to [quay.io/aaroc](https://quay.io/aaroc)
+
+  * [![Docker Repository on Quay](https://quay.io/repository/aaroc/ansiblecontainer-db/status "Docker Repository on Quay") db](https://quay.io/repository/aaroc/ansiblecontainer-db)
+  * [![Docker Repository on Quay](https://quay.io/repository/aaroc/ansiblecontainer-apiserver/status "Docker Repository on Quay") api server](https://quay.io/repository/aaroc/ansiblecontainer-apiserver)
+  * [![Docker Repository on Quay](https://quay.io/repository/aaroc/ansiblecontainer-apidaemon/status "Docker Repository on Quay") api daemon](https://quay.io/repository/aaroc/ansiblecontainer-apidaemon)

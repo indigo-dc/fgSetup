@@ -8,8 +8,15 @@
 - hosts: all
   gather_facts: false
   tasks:
-    - name: low-down and dirty python install
+    - name: low-down and dirty python install (Deb)
       raw: 'which python || apt-get -y update && apt-get -y install python python-simplejson'
+
+# - hosts: apiserver
+#   gather_facts: false
+#   tasks:
+#     - name: low-down and dirty python install (Alpine)
+#       raw: 'which python || apk -y update && apk add python py-simplejson'
+
 
 # Do DB stuff
 - hosts: db
@@ -20,7 +27,9 @@
       package:
         name: "{{ item }}"
         state: present
+        update_cache: true
       with_items: "{{ prerequisite_packages[ansible_os_family] }}"
+
     - name: Add user
       user:
         name: "{{ fg_user }}"
@@ -104,7 +113,6 @@
                               # the server, or you may simply copy their contents here and change as
                               # necessary.
 
-
 # Configure PTV symulator (test)
 # - name: startscreen | Starting PTV screen session
 #   shell: PTVSESSION=$(su - futuregateway -c "screen -ls | grep PTV") ; if [ "${PTVSESSION}" = "" ]; then su - futuregateway -c "screen -dmS PTV /bin/bash" && su - futuregateway -c "screen -S PTV -X stuff 'cd fgAPIServer\n. venv/bin/activate\n./fgapiserver_ptv.py\n'"; else echo $PTVSESSION; fi
@@ -144,3 +152,7 @@
 #                owner="{{ fg_user }}"
 #                group="{{ fg_user }}"
 #                mode=0644
+
+# - hosts: apidaemon
+#   tasks:
+#   - name:

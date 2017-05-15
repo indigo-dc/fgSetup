@@ -51,4 +51,3 @@ fg_fgapiserver: |
                 # Very specific fgAPIServer service component environment must be set here
                 #
                 # Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
-

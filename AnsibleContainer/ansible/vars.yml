@@ -1,2 +1,5 @@
 ---
 # Variables about the containers
+mysql_root_password: my-secret-pw
+mysql_user: fgapiserver
+mysql_password: fgapiserver_password

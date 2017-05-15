@@ -16,19 +16,22 @@ services:
     ports:
       - "3306:3306"
     environment:
-      - "MYSQL_ROOT_PASSWORD=my-secret-pw"
-      - "MYSQL_USER=fgapiserver"
-      - "MYSQL_PASSWORD=fgapiserver_password"
+      - "MYSQL_ROOT_PASSWORD={{ mysql_root_password }}"
+      - "MYSQL_USER={{ mysql_user }}"
+      - "MYSQL_PASSWORD={{ mysql_password}}"
     entrypoint: ["docker-entrypoint.sh"]
     user: mysql
     command: ["mysqld"]
 
   apiserver:
-    image: httpd
+    image: httpd:2.2
     ports:
       - "80:80"
+
   apidaemon:
     image: tomcat:7
+    ports:
+      - "8080:8080"
 
 registries:
   quay:
