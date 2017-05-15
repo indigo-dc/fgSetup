@@ -19,11 +19,34 @@ For instance to setup the database component just execute:
 ansible-playbook -i hosts setupdb.yml
 ```
 
+### Notes
+
+* Ansible executes as sudo, please be sure root' SSH public key belongs to the installer user authorized key.
+
+* Do not use the user 'futuregateway' to call ansible.
+
+* On Ubuntu 14.04 default ansible is 1.5.x; in order to obtain latest ansible, please use the following instructions:
+
+```sh
+sudo apt-get install -y software-properties-common
+sudo apt-add-repository -y ppa:ansible/ansible
+sudo apt-get update -y
+sudo apt-get install -y ansible
+```
+
 ## Galaxy roles
 The installation procedure relies on several ansible galaxy roles; you can install them by executing:
 ```sh
-sudo ansible-galaxy install geerlingguy.apache
-sudo ansible-galaxy install geerlingguy.mysql
+# All components
 sudo ansible-galaxy install geerlingguy.git
+
+# Database
+sudo ansible-galaxy install geerlingguy.mysql
+
+# fgAPIServer
+sudo ansible-galaxy install geerlingguy.apache
 sudo ansible-galaxy install bobbyrenwick.pip
+
+# LiferayIAM
+ansible-galaxy install indigo-dc.ansible-role-liferay-iam
 ```
