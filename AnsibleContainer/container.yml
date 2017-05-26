@@ -11,14 +11,17 @@ services:
   apiserver:
     from: centos:7
     roles:
-      - fgapi-server
+#   - AAROC.certificates
+      - AAROC.fgapi
     ports:
       - 8888:8888
     command: ['/bin/true']
+    privileged: True
 
   db:
     from: mysql:5.7
     roles:
+  #   - AAROC.certificates
       - AAROC.fg-db
     ports:
       - 3306:3306
@@ -26,6 +29,11 @@ services:
       - MYSQL_ROOT_PASSWORD=password
       - MYSQL_USER=futuregateway
       - MYSQL_USER_PASSWORD=futuregateway
+    command: ['mysqld']
+    entrypoint: ['/entrypoint.sh']
+    volumes:
+      - $PWD:/var/lib/mysql
+    privileged: True
   # Add your containers here, specifying the base image you want to build from
   # For example:
   #
