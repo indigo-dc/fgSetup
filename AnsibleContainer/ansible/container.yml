@@ -1,4 +1,6 @@
 version: "2"
+settings:
+  conductor_base: centos:7
 services:
   # Add your containers here, specifying the base image you want to build from
   # For example:
@@ -12,7 +14,8 @@ services:
   #     environment:
   #       - "DEBUG=1"
   db:
-    image: mysql:5.5
+    user: root
+    image: mysql:5.7
     ports:
       - "3306:3306"
     environment:

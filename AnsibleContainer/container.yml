@@ -1,12 +1,7 @@
 version: "2"
 settings:
-  # The Conductor container does the heavy lifting, and provides a portable
-  # Python runtime for building your target containers. It should be derived
-  # from the same distribution as you're building your target containers with.
-
-  # We choose Jessie as  the Conductor base since that's what the mysqldb is using.
+#   # We choose Jessie as  the Conductor base since that's what the mysqldb is using.
   conductor_base: centos:7
-
 services:
   apiserver:
     from: centos:7
@@ -17,9 +12,11 @@ services:
       - 8888:8888
     command: ['/bin/true']
     privileged: True
+    links:
+      - db
 
   db:
-    from: mysql
+    from: centos/mysql-56-centos7
     roles:
   #   - AAROC.certificates
       - AAROC.fg-db
@@ -29,30 +26,12 @@ services:
       - MYSQL_ROOT_PASSWORD=password
       - MYSQL_USER=futuregateway
       - MYSQL_USER_PASSWORD=futuregateway
-    command: ['mysqld']
-    entrypoint: ['/entrypoint.sh']
+      - MYSQL_DATABASE=fgapiserver
+    entrypoint: ['container-entrypoint']
     volumes:
       - $PWD:/var/lib/mysql
     privileged: True
-  # Add your containers here, specifying the base image you want to build from
-  # For example:
-  #
-  # web:
-  #   from: centos:7
-  #   roles:
-  #     - apache-container
-  #   ports:
-  #     - "80:80"
-  #   command: ['/usr/bin/dumb-init', '/usr/sbin/apache2ctl', '-D', 'FOREGROUND']
-  #   dev_overrides:
-  #     environment:
-  #       - "DEBUG=1"
-  #
 registries:
-  # Add optional registries used for deployment. For example:
-  #  google:
-  #    url: https://gcr.io
-  #    namespace: my-cool-project-xxxxxx
   quay:
     url: https://quay.io
     namespace: aaroc
