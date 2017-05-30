@@ -12,6 +12,7 @@
     - vars/apiserverdaemon.yml
   roles:
     - {role: geerlingguy.git }
+    - {role: geerlingguy.java }
   tasks:
     #
     # FutureGateway user
@@ -91,7 +92,7 @@
     - name: sshkeyscan | Configure SSH keyscan 
       #become: yes
       #become_user: futuregateway
-      shell: su - futuregateway -c "ssh-keyscan -H -t rsa localhost >> /home/{{ fg_user }}/.ssh/known_hosts"
+      shell: su - {{ fg_user }} -c "ssh-keyscan -H -t rsa localhost >> /home/{{ fg_user }}/.ssh/known_hosts"
       args:
         executable: /bin/bash
         chdir: "/home/{{ fg_user }}"
@@ -190,8 +191,6 @@
       with_items:
          - mariadb
          - mysql-connector-odbc
-         - java-1.7.0-openjdk
-         - java-1.7.0-openjdk-devel
          - ruby-devel
          - git
          - openldap
@@ -208,7 +207,6 @@
       with_items:
          - mysql-client
          - libmysql-java
-         - openjdk-7-jdk
          - ant
          - maven
          - build-essential
@@ -414,10 +412,10 @@
     # Build GridnCloudEngine threadpool
     - name: gncTPool_bld | Build the GridnCloudEngine threadpool
       become: yes
-      become_user: futuregateway
-      command: mvn clean install -Dmaven.compiler.source=1.6 -Dmaven.compiler.target=1.6 
+      #become_user: futuregateway
+      command: su - {{ fg_user }} -c "cd /home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine-threadpool; mvn clean install -Dmaven.compiler.source=1.6 -Dmaven.compiler.target=1.6"
       args:
-        chdir: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine-threadpool"
+        #chdir: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine-threadpool"
         creates: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine-threadpool/target/grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar"
       register: gnceng_tp
     # Stat grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar
@@ -447,10 +445,10 @@
     # Build GridnCloudEngine main classes
     - name: gncMain_bld | Build the GridnCloudEngine main classes
       become: yes
-      become_user: futuregateway
-      command: mvn clean install -Dmaven.compiler.source=1.6 -Dmaven.compiler.target=1.6
+      #become_user: futuregateway
+      command: su - {{ fg_user }} -c "cd /home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine_M; mvn clean install -Dmaven.compiler.source=1.6 -Dmaven.compiler.target=1.6"
       args:
-        chdir: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine_M"
+        #chdir: "/home/{{ fg_user }}/grid-and-cloud-engine/grid-and-cloud-engine_M"
         creates: "/home/{{ fg_user }}//grid-and-cloud-engine/grid-and-cloud-engine_M/target/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar"
       register: gnceng_M
     # Stat grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar
@@ -486,10 +484,10 @@
     # Build jsaga-rocci-adaptor
     - name: rocci_bld | Build jsaga-rocci-adaptor
       become: yes
-      become_user: futuregateway
-      command: ant all
+      #become_user: futuregateway
+      command: su - {{ fg_user }} -c "cd /home/{{ fg_user }}/jsaga-adaptor-rocci; ant all"
       args:
-        chdir: "/home/{{ fg_user }}/jsaga-adaptor-rocci"
+        #chdir: "/home/{{ fg_user }}/jsaga-adaptor-rocci"
         creates: "/home/{{ fg_user }}/jsaga-adaptor-rocci/dist/jsaga-adaptor-rocci.jar"
       register: rocci
     # Stat jsaga-adaptor-rocci.jar 
@@ -547,11 +545,11 @@
     # Build APIServerDaemon war file
     - name: bld_asdwar | Build the APIServerDaemon war file
       become: yes
-      become_user: futuregateway
-      shell: . /home/{{ fg_user }}/.profile && ant all
+      #become_user: futuregateway
+      shell: su - {{ fg_user }} -c "cd /home/{{ fg_user }}/APIServerDaemon; . /home/{{ fg_user }}/.profile && ant all"
       args:
         executable: /bin/bash
-        chdir: "/home/{{ fg_user }}/APIServerDaemon"
+        #chdir: "/home/{{ fg_user }}/APIServerDaemon"
         creates: "/home/{{ fg_user }}/APIServerDaemon/dist/APIServerDaemon.war"
       register: asdwar
     # Deploy APIServerDaemon war file into Tomcat webapps dir
@@ -638,8 +636,8 @@
     # Configure the SSH infrastructure host parameter
     - name: sshtst_host | Configure SSH infrastructure host parameter
       become: yes
-      become_user: futuregateway
-      shell: . /home/{{ fg_user }}/.profile;asdb "update infrastructure_parameter set pvalue='ssh://{{test_ssh_host}}:{{test_ssh_port}}' where pname='jobservice' and infra_id=1;"
+      #become_user: futuregateway
+      shell: su - {{ fg_user }} -c ". /home/{{ fg_user }}/.profile;asdb \"update infrastructure_parameter set pvalue='ssh://{{test_ssh_host}}:{{test_ssh_port}}' where pname='jobservice' and infra_id=1;\""
       args:
         executable: /bin/bash
         chdir: "/home/{{ fg_user }}"
@@ -647,8 +645,8 @@
     # Configure the SSH infrastructure user parameter
     - name: sshtst_user | Configure SSH infrastructure user parameter
       become: yes
-      become_user: futuregateway
-      shell: . /home/{{ fg_user }}/.profile;asdb "update infrastructure_parameter set pvalue='{{ tester_user }}' where pname='username' and infra_id=1;"
+      #become_user: futuregateway
+      shell: su - {{ fg_user }} -c ". /home/{{ fg_user }}/.profile;asdb \"update infrastructure_parameter set pvalue='{{ tester_user }}' where pname='username' and infra_id=1;\""
       args:
         executable: /bin/bash
         chdir: "/home/{{ fg_user }}"
@@ -656,8 +654,8 @@
     # Configure the SSH infrastructure user password parameter
     - name: sshtst_pass | Configure SSH infrastructure password parameter
       become: yes
-      become_user: futuregateway
-      shell: . /home/{{ fg_user }}/.profile;asdb "update infrastructure_parameter set pvalue='{{ tester_pass }}' where pname='password' and infra_id=1;"
+      #become_user: futuregateway
+      shell: su - {{ fg_user }} -c ". /home/{{ fg_user }}/.profile;asdb \"update infrastructure_parameter set pvalue='{{ tester_pass }}' where pname='password' and infra_id=1;\""
       args:
         executable: /bin/bash
         chdir: "/home/{{ fg_user }}"
@@ -666,4 +664,4 @@
     # Updatedb
     - name: updatedb | Execute updatedb command
       command: updatedb
-    
+
