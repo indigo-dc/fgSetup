@@ -614,6 +614,13 @@
         owner: "{{ fg_user }}"
         mode: 644
 
+    # Add tomcat user into futuregateway group
+    - name: tomcat2fgusr | Add tomcat user to futuregatway group
+      shell: TCUSR=$(cat /etc/passwd  | grep tomcat | awk -F':' '{ print $1 }'); usermod -a -G {{ fg_user }} $TCUSR
+      args:
+        executable: /bin/bash
+        chdir: "/home/{{ fg_user }}"
+
     # Restart tomcat if necessary
     - name: restarttomcat | Restart Tomcat service
       service:
@@ -664,4 +671,3 @@
     # Updatedb
     - name: updatedb | Execute updatedb command
       command: updatedb
-
