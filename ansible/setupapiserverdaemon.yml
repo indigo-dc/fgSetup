@@ -189,6 +189,7 @@
         name: "{{ item }}"
         state: latest
       with_items:
+         - mlocate
          - mariadb
          - mysql-connector-odbc
          - ruby-devel
@@ -205,6 +206,7 @@
         pkg: "{{ item }}"
         state: latest
       with_items:
+         - mlocate
          - mysql-client
          - libmysql-java
          - ant
