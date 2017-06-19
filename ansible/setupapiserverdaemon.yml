@@ -577,6 +577,20 @@
         executable: /bin/bash
         creates: /usr/bin/occi
       register: occi
+    
+    # Fix permission to certificate file
+    - name: vomsdir_rights | Fix vomsdir certificates access rights
+      shell: find /etc/grid-security/vomsdir/ | xargs -I{} chmod o+r,g+r,u+r {}
+      args:
+        executable: /bin/bash        
+      when: occi.changed
+    
+    # Fix permission to certificate file
+    - name: vomsesdir_rights | Fix vomsesdir certificates access rights
+      shell: find /etc/vomses | xargs -I{} chmod o+r,g+r,u+r {}
+      args:
+        executable: /bin/bash        
+      when: occi.changed
 
     #
     # VOMS configuration
