@@ -577,20 +577,6 @@
         executable: /bin/bash
         creates: /usr/bin/occi
       register: occi
-    
-    # Fix permission to certificate file
-    - name: vomsdir_rights | Fix vomsdir certificates access rights
-      shell: find /etc/grid-security/vomsdir/ | xargs -I{} chmod o+r,g+r,u+r {}
-      args:
-        executable: /bin/bash        
-      when: occi.changed
-    
-    # Fix permission to certificate file
-    - name: vomsesdir_rights | Fix vomsesdir certificates access rights
-      shell: find /etc/vomses | xargs -I{} chmod o+r,g+r,u+r {}
-      args:
-        executable: /bin/bash        
-      when: occi.changed
 
     #
     # VOMS configuration
@@ -629,6 +615,20 @@
         group: "{{ fg_user }}"
         owner: "{{ fg_user }}"
         mode: 644
+
+    # Fix permissions to vomsdir files
+    - name: vomsdir_rights | Fix vomsdir certificates access rights
+      shell: find /etc/grid-security/vomsdir/ | xargs -I{} chmod o+r,g+r,u+r {}
+      args:
+        executable: /bin/bash        
+      when: occi.changed
+    
+    # Fix permission to vomses files
+    - name: vomsesdir_rights | Fix vomsesdir certificates access rights
+      shell: find /etc/vomses | xargs -I{} chmod o+r,g+r,u+r {}
+      args:
+        executable: /bin/bash        
+      when: occi.changed
 
     # Add tomcat user into futuregateway group
     - name: tomcat2fgusr | Add tomcat user to futuregatway group
