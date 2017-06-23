@@ -1,0 +1,42 @@
+version: "2"
+settings:
+  conductor_base: centos:7
+services:
+  # Add your containers here, specifying the base image you want to build from
+  # For example:
+  #
+  # web:
+  #   image: ubuntu:trusty
+  #   ports:
+  #     - "80:80"
+  #   command: ['/usr/bin/dumb-init', '/usr/sbin/apache2ctl', '-D', 'FOREGROUND']
+  #   dev_overrides:
+  #     environment:
+  #       - "DEBUG=1"
+  db:
+    user: root
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      - "MYSQL_ROOT_PASSWORD={{ mysql_root_password }}"
+      - "MYSQL_USER={{ mysql_user }}"
+      - "MYSQL_PASSWORD={{ mysql_password}}"
+    entrypoint: ["docker-entrypoint.sh"]
+    user: mysql
+    command: ["mysqld"]
+
+  apiserver:
+    image: httpd:2.2
+    ports:
+      - "80:80"
+
+  apidaemon:
+    image: tomcat:7
+    ports:
+      - "8080:8080"
+
+registries:
+  quay:
+    url: https://quay.io
+    namespace: aaroc

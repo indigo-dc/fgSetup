@@ -1,0 +1,62 @@
+---
+fg_user: futuregateway
+prerequisite_packages:
+  RedHat:
+    - git
+    - mysql
+    - mysql-devel
+    - MySQL-python
+    - gcc
+    - libffi-devel
+    - python-devel
+    - openssl-devel
+    - mod_wsgi
+    - python-pip
+    - virtualenv
+  Debian:
+    - git
+    - mysql-client
+    - libmysqlclient-dev
+    - python-mysql.connector
+    - build-essential
+    - python-dev
+    - libffi-dev
+    - libapache2-mod-wsgi
+    - python-pip
+    - virtualenv
+  Alpine:
+    - git
+    - mysql-client
+    - mariadb-dev
+    - py-mysqldb
+    - gcc
+    - python-dev
+    - libffi-dev
+    - apache2-mod-wsgi
+    - py-pip
+    - py-virtualenv
+
+fg_fgAPIServer_git: https://github.com/AAROC/fgAPIServer.git
+
+fgapiver: v1.0
+fgapiserver_name: FutureGateway API Server
+fgapisrv_host: 0.0.0.0
+fgapisrv_port: 8888
+fgapisrv_debug: True
+fgapisrv_iosandbox: /tmp
+fgapisrv_geappid: 10000
+fgjson_indent: 4
+fgapisrv_key:
+fgapisrv_crt:
+fgapisrv_logcfg: fgapiserver_log.conf
+fgapisrv_dbver: "{{ fg_db_schemaver }}"
+fgapisrv_secret: 0123456789ABCDEF
+fgapisrv_notoken: False
+fgapisrv_notokenusr: test
+fgapisrv_lnkptvflag: True
+fgapisrv_ptvendpoint: http://localhost:8889/checktoken
+fgapisrv_ptvuser: tokenver_user
+fgapisrv_ptvpass: tokenver_pass
+fgapisrv_ptvdefusr: futuregateway
+fgapisrv_ptvdefgrp: administrator
+fgapisrv_ptvmapfile: fgapiserver_ptvmap.json
