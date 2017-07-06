@@ -27,8 +27,6 @@
          - wkhtmltopdf  
          - sshpass 
       when: ansible_os_family == "Debian"
-    - name: venv | installing virtualenv
-      command: pip install virtualenv
     # www directories
     - name: www_css | Creates fgtest/www/css directory
       file: path=/home/{{ fg_user }}/fgAPIServer/fgtest/www/css state=directory
@@ -78,6 +76,7 @@
         owner: root
         group: root
         mode: 0644
+      register: fgtest_conf
     # Enable fgtest site
     - name: fgtest_enable | Enable fgtest site under fgtest/www
       command: ln -s /etc/apache2/sites-available/fgtest.conf /etc/apache2/sites-enabled/fgtest.conf
@@ -87,8 +86,10 @@
       service:
         name: apache2 
         state: restarted
+      when: fgtest_conf.changed
     # Execute tesst
     - name: testexec | Execute tests
-      command: ./fgtest.sh > fgtest.out 2>fgtest.err 
-               chdir=/home/{{ fg_user }}/fgAPIServer/fgtest
-               creates=/home/{{ fg_user }}/fgAPIServer/fgtest/www/index.html
+      raw: cd /home/{{ fg_user }}/fgAPIServer/fgtest ; ./fgtest.sh >fgtest.out 2>fgtest.err
+           executable=/bin/bash
+           chdir=/home/{{ fg_user }}/fgAPIServer/fgtest
+           creates=/home/{{ fg_user }}/fgAPIServer/fgtest/www/index.html
