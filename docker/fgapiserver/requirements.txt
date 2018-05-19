@@ -1,0 +1,10 @@
+pep8
+setuptools
+packaging
+pyOpenSSL
+flask
+flask-login
+flask_oidc
+MySQL-python
+pycrypto
+requests
