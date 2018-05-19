@@ -1,2 +1,2 @@
-# fgdb_container
+# fgdb
 Docker-hub build scripts for FutureGateway component 'fgdb'
