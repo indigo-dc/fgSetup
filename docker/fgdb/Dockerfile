@@ -1,5 +1,6 @@
 # OS
-FROM mysql:latest
+#FROM mysql:latest
+FROM mysql:5
 
 # Maintainer
 MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
@@ -8,11 +9,11 @@ MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
 ENV FG_USER futuregateway
 ENV FG_DIR /home/futuregateway
 ENV MYSQL_ROOT_PASSWORD rpass
-ENV MYSQL_USER fgapiserver
-ENV MYSQL_PASSWORD fgapiserver_password
-ENV MYSQL_DATABASE fgapiserver
-ENV FGDB_GIT https://github.com/indigo-dc/fgAPIServer.git
-ENV FGDB_BRANCH safe_transaction
+ENV FGDB_USER fgapiserver
+ENV FGDB_PASSWORD fgapiserver_password
+ENV FGDB_DATABASE fgapiserver
+ENV FGDB_GIT https://github.com/FutureGatewayFramework/fgAPIServer.git
+ENV FGDB_BRANCH master 
 
 # User and working directory
 WORKDIR $FG_DIR
