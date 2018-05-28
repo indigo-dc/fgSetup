@@ -1,5 +1,5 @@
 DOCKER_REPO = futuregateway
-IMAGE_NAME = fgdb
+IMAGE_NAME = fgapiserver
 IMAGE_TAG = 0.1
 #IMAGE_LATEST_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep latest | awk '{ print $3 }')
 #IMAGE_TAGGED_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep $(IMAGE_TAG) | awk '{ print $3 }')
