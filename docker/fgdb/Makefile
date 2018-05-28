@@ -1,8 +1,10 @@
 DOCKER_REPO = futuregateway
 IMAGE_NAME = fgdb
 IMAGE_TAG = 0.1
+FG_NETWORK = fgnetwork
 #IMAGE_LATEST_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep latest | awk '{ print $3 }')
 #IMAGE_TAGGED_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep $(IMAGE_TAG) | awk '{ print $3 }')
+FG_RUN_NET = $(shell docker network list --format '{{.Name}}' | grep $(FG_NETWORK))
 
 default:
 	@echo "Usage: make <image|pubimg>"
@@ -24,5 +26,14 @@ publish: image
 	docker push $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
 	docker push $(DOCKER_REPO)/$(IMAGE_NAME):latest
 
-run:  
-	docker run -d --name $(IMAGE_NAME)_$(IMAGE_TAG) -p3306:3306 $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
+network:
+	echo $(FG_RUN_NET)
+	@[ "$(FG_RUN_NET)" = "" ] && docker network create $(FG_NETWORK)\
+		                  || echo "Network $(FG_NETWORK) already running"
+
+run: network 
+	docker run -d\
+		   --net $(FG_NETWORK)\
+		   --name $(IMAGE_NAME)_$(IMAGE_TAG)\
+	           -p 3306:3306\
+	   	   $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)

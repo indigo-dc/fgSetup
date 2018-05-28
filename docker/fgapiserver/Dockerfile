@@ -10,8 +10,8 @@ ENV FG_DIR /home/futuregateway
 ENV MYSQL_USER fgapiserver
 ENV MYSQL_PASSWORD fgapiserver_password
 ENV MYSQL_DATABASE fgapiserver
-ENV FGDB_GIT https://github.com/indigo-dc/fgAPIServer.git
-ENV FGDB_BRANCH safe_transaction
+ENV FGDB_GIT https://github.com/FutureGatewayFramework/fgAPIServer.git 
+ENV FGDB_BRANCH master
 
 # User and working directory
 WORKDIR $FG_DIR
