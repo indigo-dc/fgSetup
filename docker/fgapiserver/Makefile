@@ -30,22 +30,19 @@ network:
 		                  || echo "Network $(FG_NETWORK) already running"
 
 run: network
-	@docker network inspect $(FG_NETWORK)|\
-                  jq '.[0].Containers | .[].Name+" "+.[].IPv4Address' |\
-                  xargs echo |\
-                  awk '{ print $$2 }' |\
-                  awk -F"/" '{ print $$1 }'	
-	FGDB_IP=`docker network inspect $(FG_NETWORK)|\
+	@FGDB_IP=`docker network inspect $(FG_NETWORK)|\
                   jq '.[0].Containers | .[].Name+" "+.[].IPv4Address' |\
                   xargs echo |\
                   awk '{ print $$2 }' |\
                   awk -F"/" '{ print $$1 }'` &&\
         [ "$$FGDB_IP" != "" ] &&\
-        echo "fgdb IP: $(FGDB_IP)" &&\
+        echo "fgdb IP: $$FGDB_IP" &&\
         docker run -d\
+	     -e FGDB_HOST=$(FG_RUN_NET)\
             --net $(FG_NETWORK)\
             --name $(IMAGE_NAME)_$(IMAGE_TAG)\
-            -p8888:8888\
+            -p8888:80\
             -p8889:8889\
-            $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
+	    --add-host "fgdb:$$FGDB_IP"\
+	    $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
         echo "Sorry, FGDB node is not running!"

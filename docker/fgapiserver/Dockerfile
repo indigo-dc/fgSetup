@@ -58,6 +58,6 @@ RUN cp -r fgAPIServer/ / &&\
 WORKDIR /app
 
 RUN ln -s fgapiserver.py main.py &&\
-   #sed -i "s/fgapisrv_db_host\ =\ localhost/fgapisrv_db_host\ =\ fgdb/" fgapiserver.conf &&\
+    sed -i "s/fgapisrv_db_host\ =\ localhost/fgapisrv_db_host\ =\ fgdb/" fgapiserver.conf &&\
     cp /app_orig/uwsgi.ini uwsgi.ini &&\
     pip install -r requirements.txt
