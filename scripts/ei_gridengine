@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+# GridEngine Executor Interface  Environment settings configuration file
+#
+# Very specific GridEngine Executor Interface environment must be set here
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+# GridEngine Executor Interface
+export UTDB_HOST=""
+export UTDB_PORT=""
+export UTDB_USER="tracking_user"
+export UTDB_PASSWD="usertracking"
+export UTDB_NAME="userstracking"
+export UTDB_ROOTPWD="rootpwd"
+export UTDB_OPTS=''
