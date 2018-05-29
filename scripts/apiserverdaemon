@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# APIServerDaemon Environment settings configuration file
+#
+# Very specific APIServerDaemon service component environment must be set here
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+catalina_env() {
+  export CATALINA=$(locate catalina.sh)
+  export CATALINA_HOME=$($CATALINA version | grep CATALINA_HOME| awk -F":" '{ print $2 }' | xargs echo )
+  export CATALINA_BASE=$($CATALINA version | grep CATALINA_BASE | awk -F":" '{ print $2 }' | xargs echo )
+}
+
+# Set CATALINA variables
+catalina_env
+
+# GridEngine Executor Interface
+export UTDB_HOST=""
+export UTDB_PORT=""
+export UTDB_USER="tracking_user"
+export UTDB_PASSWD="usertracking"
+export UTDB_NAME="userstracking"
+export UTDB_ROOTPWD="rootpwd"
+export UTDB_OPTS=''
