@@ -13,4 +13,4 @@ export UTDB_USER="tracking_user"
 export UTDB_PASSWD="usertracking"
 export UTDB_NAME="userstracking"
 export UTDB_ROOTPWD="rootpwd"
-export UTDB_OPTS=''
+export UTDB_OPTS=
