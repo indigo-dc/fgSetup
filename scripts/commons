@@ -492,7 +492,7 @@ dbcn() {
     if [ "$DB_ERR" != "" ]; then
       DB_ERR_OPT="2> $DB_ERR"
     fi
-    eval $MYSQL -h $DB_HOST -P $DB_PORT -u $DB_USER $DB_PASSWD $DB_OPTS $DB_NAME "$DB_CMD" $DB_OUT_OPT $DB_ERR_OPT 
+    eval $MYSQL -h $DB_HOST -P $DB_PORT -u $DB_USER $DB_PASSWD --protocol=tcp $DB_OPTS $DB_NAME "$DB_CMD" $DB_OUT_OPT $DB_ERR_OPT 
     RES=$?
     return $RES
 }
