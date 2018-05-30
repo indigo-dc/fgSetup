@@ -36,4 +36,5 @@ run: network
 		   --net $(FG_NETWORK)\
 		   --name $(IMAGE_NAME)_$(IMAGE_TAG)\
 	           -p 3306:3306\
+		   -h fgdb \
 	   	   $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
