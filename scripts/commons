@@ -550,3 +550,17 @@ git_clone_or_update() {
     return 0
 }
 
+# Functions to export
+export -f get_ts
+export -f out
+export -f err
+export -f outf
+export -f fg_exec
+export -f replace_line
+export -f show_vars
+export -f asdb
+export -f asdbr
+export -f utdb
+export -f utdbr
+export -f dbcn
+export -f git_clone_or_update
