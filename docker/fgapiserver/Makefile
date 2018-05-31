@@ -45,6 +45,6 @@ run: network
             -p8889:8889\
 	    --add-host "fgdb:$$FGDB_IP"\
 	    -v $HOME/fgVolumes/apps:/app/apps\
-	    -v $HOME/fgVolumes/iosandbox:/tmp/fgiosandbox
+	    -v $HOME/fgVolumes/iosandbox:/tmp/fgiosandbox\
 	    $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
         echo "Sorry, FGDB node is not running!"
