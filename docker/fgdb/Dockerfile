@@ -76,13 +76,13 @@ RUN git clone $FGSETUP_GIT -b $FGSETUP_BRANCH &&\
     cp fgSetup/scripts/fgdb .fgprofile/fgdb &&\
     cp fgSetup/scripts/ei_gridengine .fgprofile/ei_gridengine &&\
 # Configure scripts
-    sed -i "s/.*FGDB_HOST.*/export FGDB_HOST=$FGDB_HOST/" .fgprofile/fgdb &&\
-    sed -i "s/.*FGDB_PORT.*/export FGDB_PORT=$FGDB_PORT/" .fgprofile/fgdb &&\
-    sed -i "s/.*FGDB_USER.*/export FGDB_USER=$FGDB_USER/" .fgprofile/fgdb &&\
-    sed -i "s/.*FGDB_PASSWD.*/export FGDB_PASSWD=$FGDB_PASSWD/" .fgprofile/fgdb &&\
-    sed -i "s/.*FGDB_NAME.*/export FGDB_NAME=$FGDB_NAME/" .fgprofile/fgdb &&\
-    sed -i "s/.*ASDB_OPTS.*/export ASDB_OPTS=''/" .fgprofile/fgdb &&\
-    sed -i "s/.*FGDB_ROOTPWD.*/export FGDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgdb 
+    sed -i "s/^FGDB_HOST.*/export FGDB_HOST=$FGDB_HOST/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_PORT.*/export FGDB_PORT=$FGDB_PORT/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_USER.*/export FGDB_USER=$FGDB_USER/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_PASSWD.*/export FGDB_PASSWD=$FGDB_PASSWD/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_NAME.*/export FGDB_NAME=$FGDB_NAME/" .fgprofile/fgdb &&\
+    sed -i "s/^ASDB_OPTS.*/export ASDB_OPTS=''/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_ROOTPWD.*/export FGDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgdb 
 
 #
 # Additional setup for Executor Interfaces
@@ -90,12 +90,12 @@ RUN git clone $FGSETUP_GIT -b $FGSETUP_BRANCH &&\
 
 # Grid and Cloud Engine UsersTracking database
 RUN git clone $GNCENG -b $GNCENG_BRANCH &&\
-    sed -i "s/.*UTDB_HOST.*/export UTDB_HOST=$UTDB_HOST/" .fgprofile/ei_gridengine &&\
-    sed -i "s/.*UTDB_PORT.*/export UTDB_PORT=$UTDB_PORT/" .fgprofile/ei_gridengine &&\
-#    sed -i "s/.*UTDB_USER.*/export UTDB_USER=$UTDB_USER/" .fgprofile/ei_gridengine &&\
-#    sed -i "s/.*UTDB_PASSWD.*/export UTDB_PASSWD=$UTDB_PASSWD/" .fgprofile/ei_gridengine &&\
-#    sed -i "s/.*UTDB_NAME.*/export UTDB_NAME=$UTDB_NAME/" .fgprofile/ei_gridengine &&\
-    sed -i "s/.*UTDB_OPTS.*/export UTDB_OPTS=''/" .fgprofile/ei_gridengine
+    sed -i "s/^UTDB_HOST.*/export UTDB_HOST=$UTDB_HOST/" .fgprofile/ei_gridengine &&\
+    sed -i "s/^UTDB_PORT.*/export UTDB_PORT=$UTDB_PORT/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/^UTDB_USER.*/export UTDB_USER=$UTDB_USER/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/^UTDB_PASSWD.*/export UTDB_PASSWD=$UTDB_PASSWD/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/^UTDB_NAME.*/export UTDB_NAME=$UTDB_NAME/" .fgprofile/ei_gridengine &&\
+    sed -i "s/^UTDB_OPTS.*/export UTDB_OPTS=''/" .fgprofile/ei_gridengine
 
 # Working directory
 USER root

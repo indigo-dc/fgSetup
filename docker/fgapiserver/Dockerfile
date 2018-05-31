@@ -93,20 +93,20 @@ RUN git clone $FGSETUP_GIT -b $FGSETUP_BRANCH &&\
     cp fgSetup/scripts/fgdb .fgprofile/fgapiserver &&\
     cp fgSetup/scripts/ei_gridengine .fgprofile/ei_gridengine &&\
 # Configure scripts
-    sed -i "s/export FGDB_HOST=/export FGDB_HOST=$FGDB_HOST/" .fgprofile/fgdb &&\
-    sed -i "s/export FGDB_PORT=/export FGDB_PORT=$FGDB_PORT/" .fgprofile/fgdb &&\
-    sed -i "s/export FGDB_USER=/export FGDB_USER=$FGDB_USER/" .fgprofile/fgdb &&\
-    sed -i "s/export FGDB_PASSWD=/export FGDB_PASSWD=$FGDB_PASSWD/" .fgprofile/fgdb &&\
-    sed -i "s/export FGDB_NAME=/export FGDB_NAME=$FGDB_NAME/" .fgprofile/fgdb &&\
-    sed -i "s/export ASDB_OPTS=/export ASDB_OPTS=''/" .fgprofile/fgdb &&\
-    sed -i "s/export FGDB_ROOTPWD=/export FGDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_HOST.*/export FGDB_HOST=$FGDB_HOST/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_PORT.*/export FGDB_PORT=$FGDB_PORT/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_USER.*/export FGDB_USER=$FGDB_USER/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_PASSWD.*/export FGDB_PASSWD=$FGDB_PASSWD/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_NAME.*/export FGDB_NAME=$FGDB_NAME/" .fgprofile/fgdb &&\
+    sed -i "s/^ASDB_OPTS.*/export ASDB_OPTS=''/" .fgprofile/fgdb &&\
+    sed -i "s/^FGDB_ROOTPWD.*/export FGDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgdb &&\
 # Configuring scripts ei_gridengine
-    sed -i "s/export UTDB_HOST=/export UTDB_HOST=$UTDB_HOST/" .fgprofile/ei_gridengine &&\
-    sed -i "s/export UTDB_PORT=/export UTDB_PORT=$UTDB_PORT/" .fgprofile/ei_gridengine &&\
-#    sed -i "s/export UTDB_USER=/export UTDB_USER=$UTDB_USER/" .fgprofile/ei_gridengine &&\
-#    sed -i "s/export UTDB_PASSWD=/export UTDB_PASSWD=$UTDB_PASSWD/" .fgprofile/ei_gridengine &&\
-#    sed -i "s/export UTDB_NAME=/export UTDB_NAME=$UTDB_NAME/" .fgprofile/ei_gridengine &&\
-    sed -i "s/export UTDB_OPTS=/export UTDB_OPTS=''/" .fgprofile/ei_gridengine
+    sed -i "s/^UTDB_HOST.*/export UTDB_HOST=$UTDB_HOST/" .fgprofile/ei_gridengine &&\
+    sed -i "s/^UTDB_PORT.*/export UTDB_PORT=$UTDB_PORT/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/^UTDB_USER.*/export UTDB_USER=$UTDB_USER/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/^UTDB_PASSWD.*/export UTDB_PASSWD=$UTDB_PASSWD/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/^UTDB_NAME.*/export UTDB_NAME=$UTDB_NAME/" .fgprofile/ei_gridengine &&\
+    sed -i "s/^UTDB_OPTS.*/export UTDB_OPTS=''/" .fgprofile/ei_gridengine
 
 
 # nginx port 80 available to the world outside this container
@@ -124,32 +124,32 @@ RUN cp -r fgAPIServer/ / &&\
 WORKDIR /app
 
 RUN ln -s fgapiserver.py main.py &&\
-    sed -i "s/.*fgapiver.*/fgapiver = $FGAPIVER/" fgapiserver.conf &&\
-    sed -i "s/.*fgapiserver_name.*/fgapiserver_name = $FGAPISERVER_NAME/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_host.*/fgapisrv_host = $FGAPISRV_HOST/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_port.*/fgapisrv_port = $FGAPISRV_PORT/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_debug.*/fgapisrv_debug = $FGAPISRV_DEBUG/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_iosandbox.*/fgapisrv_iosandbox = $FGAPISRV_IOSANDBOX/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_geappid.*/fgapisrv_geappid = $FGAPISRV_GEAPPID/" fgapiserver.conf &&\
-    sed -i "s/.*fgjson_indent.*/fgjson_indent = $FGJSON_INDENT/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_key.*/fgapisrv_key = $FGAPISRV_KEY/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_crt.*/fgapisrv_crt = $FGAPISRV_CRT/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_logcfg.*/fgapisrv_logcfg = $FGAPISRV_LOGCFG/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_dbver.*/fgapisrv_dbver = $FGAPISRV_DBVER/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_secret.*/fgapisrv_secret = $FGAPISRV_SECRET/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_notoken.*/fgapisrv_notoken = $FGAPISRV_NOTOKEN/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_notokenusr.*/fgapisrv_notokenusr = $FGAPISRV_NOTOKENUSR/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_lnkptvflag.*/fgapisrv_lnkptvflag = $FGAPISRV_LNKPTVFLAG/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_ptvendpoint.*/fgapisrv_ptvendpoint = $FGAPISRV_PTVENDPOINT/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_ptvuser.*/fgapisrv_ptvuser = $FGAPISRV_PTVUSER/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_ptvpass.*/fgapisrv_ptvpass = $FGAPISRV_PTVPASS/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_ptvdefusr.*/fgapisrv_ptvdefusr = $FGAPISRV_PTVDEFUSR/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_ptvdefgrp.*/fgapisrv_ptvdefgrp = $FGAPISRV_PTVDEFGRP/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_ptvmapfile.*/fgapisrv_ptvmapfile = $FGAPISRV_PTVMAPFILE/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_db_host.*/fgapisrv_db_host = $FGAPISRV_DB_HOST/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_db_port.*/fgapisrv_db_port = $FGAPISRV_DB_PORT/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_db_user.*/fgapisrv_db_user = $FGAPISRV_DB_USER/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_db_pass.*/fgapisrv_db_pass = $FGAPISRV_DB_PASS/" fgapiserver.conf &&\
-    sed -i "s/.*fgapisrv_db_name.*/fgapisrv_db_name = $FGAPISRV_DB_NAME/" fgapiserver.conf &&\
+    sed -i "s/^fgapiver.*/fgapiver = $FGAPIVER/" fgapiserver.conf &&\
+    sed -i "s/^fgapiserver_name.*/fgapiserver_name = $FGAPISERVER_NAME/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_host.*/fgapisrv_host = $FGAPISRV_HOST/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_port.*/fgapisrv_port = $FGAPISRV_PORT/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_debug.*/fgapisrv_debug = $FGAPISRV_DEBUG/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_iosandbox.*/fgapisrv_iosandbox = $FGAPISRV_IOSANDBOX/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_geappid.*/fgapisrv_geappid = $FGAPISRV_GEAPPID/" fgapiserver.conf &&\
+    sed -i "s/^fgjson_indent.*/fgjson_indent = $FGJSON_INDENT/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_key.*/fgapisrv_key = $FGAPISRV_KEY/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_crt.*/fgapisrv_crt = $FGAPISRV_CRT/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_logcfg.*/fgapisrv_logcfg = $FGAPISRV_LOGCFG/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_dbver.*/fgapisrv_dbver = $FGAPISRV_DBVER/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_secret.*/fgapisrv_secret = $FGAPISRV_SECRET/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_notoken.*/fgapisrv_notoken = $FGAPISRV_NOTOKEN/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_notokenusr.*/fgapisrv_notokenusr = $FGAPISRV_NOTOKENUSR/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_lnkptvflag.*/fgapisrv_lnkptvflag = $FGAPISRV_LNKPTVFLAG/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_ptvendpoint.*/fgapisrv_ptvendpoint = $FGAPISRV_PTVENDPOINT/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_ptvuser.*/fgapisrv_ptvuser = $FGAPISRV_PTVUSER/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_ptvpass.*/fgapisrv_ptvpass = $FGAPISRV_PTVPASS/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_ptvdefusr.*/fgapisrv_ptvdefusr = $FGAPISRV_PTVDEFUSR/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_ptvdefgrp.*/fgapisrv_ptvdefgrp = $FGAPISRV_PTVDEFGRP/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_ptvmapfile.*/fgapisrv_ptvmapfile = $FGAPISRV_PTVMAPFILE/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_db_host.*/fgapisrv_db_host = $FGAPISRV_DB_HOST/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_db_port.*/fgapisrv_db_port = $FGAPISRV_DB_PORT/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_db_user.*/fgapisrv_db_user = $FGAPISRV_DB_USER/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_db_pass.*/fgapisrv_db_pass = $FGAPISRV_DB_PASS/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_db_name.*/fgapisrv_db_name = $FGAPISRV_DB_NAME/" fgapiserver.conf &&\
     cp /app_orig/uwsgi.ini uwsgi.ini &&\
     pip install -r requirements.txt
