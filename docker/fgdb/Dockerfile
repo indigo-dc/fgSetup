@@ -5,7 +5,7 @@ FROM mysql:5
 # Maintainer
 MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
 
-# Environment
+# Environment for FGDB
 ENV FG_USER futuregateway
 ENV FG_DIR /home/futuregateway
 ENV MYSQL_ROOT_PASSWORD rpass
