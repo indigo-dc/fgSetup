@@ -2,7 +2,8 @@ DOCKER_REPO = futuregateway
 IMAGE_NAME = fgapiserver
 IMAGE_TAG = 0.1
 FG_NETWORK = fgnetwork
-FG_VOLUMESDIR = $$HOME/fgVolumes
+FG_APPSDIR = $$HOME/fgVolumes/apps
+FG_IOSANDBOXDIR = $$HOME/fgVolumes/iosandbox
 #IMAGE_LATEST_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep latest | awk '{ print $3 }')
 #IMAGE_TAGGED_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep $(IMAGE_TAG) | awk '{ print $3 }')
 
@@ -27,14 +28,15 @@ publish: image
 	docker push $(DOCKER_REPO)/$(IMAGE_NAME):latest
 
 network:
-	@[ "$(FG_RUN_NET)" = "" ] && docker network create $(FG_NETWORK)\
-		                  || echo "Network $(FG_NETWORK) already running"
+	@[ "$(shell docker network list | grep $(FG_NETWORK))" = "" ]\
+	       	&& docker network create $(FG_NETWORK)\
+                || echo "Network $(FG_NETWORK) already running"
 
 shdir:
-	@[ -d fgVolumes/apps ] && echo "fgapiserver' apps directory exists"\
-                                  || mkdir -p $(FG_VOLUMESDIR)/apps
-	@[ -d fgVolumes/iosandbox ] && echo "fgapiserver' iosandbox directory exists"\
-                                  || mkdir -p $(FG_VOLUMESDIR)/iosandbox
+	@[ -d $(FG_APPSDIR) ] && echo "fgapiserver' apps directory exists"\
+                                  || mkdir -p $(FG_APPSDIR)/apps
+	@[ -d $(FG_IOSANDBOXDIR) ] && echo "fgapiserver' iosandbox directory exists"\
+                                  || mkdir -p $(FG_IOSANDBOXDIR)/iosandbox
 
 run: network shdir
 	@FGDB_IP=`docker network inspect $(FG_NETWORK)|\
@@ -51,8 +53,8 @@ run: network shdir
             -p8888:80\
             -p8889:8889\
 	    --add-host "fgdb:$$FGDB_IP"\
-	    -v $$HOME/fgVolumes/apps:/app/apps\
-	    -v $$HOME/fgVolumes/iosandbox:/tmp/fgiosandbox\
+	    -v $(FG_APPSDIR):/app/apps\
+	    -v $(FG_IOSANDBOXDIR):/tmp/fgiosandbox\
 	    -h fgapiserver\
 	    $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
         echo "Sorry, FGDB node is not running!"

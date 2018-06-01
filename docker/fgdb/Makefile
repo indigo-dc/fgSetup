@@ -28,8 +28,9 @@ publish: image
 	docker push $(DOCKER_REPO)/$(IMAGE_NAME):latest
 
 network:
-	@[ "$(FG_RUN_NET)" = "" ] && docker network create $(FG_NETWORK)\
-		                  || echo "Network $(FG_NETWORK) already running"
+	@[ "$(shell docker network list | grep $(FG_NETWORK))" = "" ]\
+                && docker network create $(FG_NETWORK)\
+                || echo "Network $(FG_NETWORK) already running"
 
 shdir:
 	@[ -d $(FG_MYSQLIR) ] && echo "fgdb' mysql directory exists"\
