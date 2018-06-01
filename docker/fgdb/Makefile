@@ -2,6 +2,7 @@ DOCKER_REPO = futuregateway
 IMAGE_NAME = fgdb
 IMAGE_TAG = 0.1
 FG_NETWORK = fgnetwork
+FG_MYSQLIR = $$HOME/fgVolumes/fgdb_mysql
 #IMAGE_LATEST_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep latest | awk '{ print $3 }')
 #IMAGE_TAGGED_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep $(IMAGE_TAG) | awk '{ print $3 }')
 FG_RUN_NET = $(shell docker network list --format '{{.Name}}' | grep $(FG_NETWORK))
@@ -27,14 +28,18 @@ publish: image
 	docker push $(DOCKER_REPO)/$(IMAGE_NAME):latest
 
 network:
-	echo $(FG_RUN_NET)
 	@[ "$(FG_RUN_NET)" = "" ] && docker network create $(FG_NETWORK)\
 		                  || echo "Network $(FG_NETWORK) already running"
 
-run: network 
+shdir:
+	@[ -d $(FG_MYSQLIR) ] && echo "fgdb' mysql directory exists"\
+                                  || mkdir -p $(FG_MYSQLIR)
+
+run: network shdir
 	docker run -d\
 		   --net $(FG_NETWORK)\
 		   --name $(IMAGE_NAME)_$(IMAGE_TAG)\
 	           -p 3306:3306\
 		   -h fgdb \
+		   -v $$HOME/fgVolumes/fgdb_mysql:/var/lib/mysql\
 	   	   $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
