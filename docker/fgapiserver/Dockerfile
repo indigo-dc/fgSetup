@@ -93,20 +93,21 @@ RUN git clone $FGSETUP_GIT -b $FGSETUP_BRANCH &&\
     cp fgSetup/scripts/fgdb .fgprofile/fgapiserver &&\
     cp fgSetup/scripts/ei_gridengine .fgprofile/ei_gridengine &&\
 # Configure scripts
-    sed -i "s/^FGDB_HOST.*/export FGDB_HOST=$FGDB_HOST/" .fgprofile/fgdb &&\
-    sed -i "s/^FGDB_PORT.*/export FGDB_PORT=$FGDB_PORT/" .fgprofile/fgdb &&\
-    sed -i "s/^FGDB_USER.*/export FGDB_USER=$FGDB_USER/" .fgprofile/fgdb &&\
-    sed -i "s/^FGDB_PASSWD.*/export FGDB_PASSWD=$FGDB_PASSWD/" .fgprofile/fgdb &&\
-    sed -i "s/^FGDB_NAME.*/export FGDB_NAME=$FGDB_NAME/" .fgprofile/fgdb &&\
-    sed -i "s/^ASDB_OPTS.*/export ASDB_OPTS=''/" .fgprofile/fgdb &&\
-    sed -i "s/^FGDB_ROOTPWD.*/export FGDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_HOST.*/export FGDB_HOST=$FGDB_HOST/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_PORT.*/export FGDB_PORT=$FGDB_PORT/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_USER.*/export FGDB_USER=$FGDB_USER/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_PASSWD.*/export FGDB_PASSWD=$FGDB_PASSWD/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_NAME.*/export FGDB_NAME=$FGDB_NAME/" .fgprofile/fgdb &&\
+    sed -i "s/.*ASDB_OPTS.*/export ASDB_OPTS=''/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_ROOTPWD.*/export FGDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgdb &&\
 # Configuring scripts ei_gridengine
-    sed -i "s/^UTDB_HOST.*/export UTDB_HOST=$UTDB_HOST/" .fgprofile/ei_gridengine &&\
-    sed -i "s/^UTDB_PORT.*/export UTDB_PORT=$UTDB_PORT/" .fgprofile/ei_gridengine &&\
-#    sed -i "s/^UTDB_USER.*/export UTDB_USER=$UTDB_USER/" .fgprofile/ei_gridengine &&\
-#    sed -i "s/^UTDB_PASSWD.*/export UTDB_PASSWD=$UTDB_PASSWD/" .fgprofile/ei_gridengine &&\
-#    sed -i "s/^UTDB_NAME.*/export UTDB_NAME=$UTDB_NAME/" .fgprofile/ei_gridengine &&\
-    sed -i "s/^UTDB_OPTS.*/export UTDB_OPTS=''/" .fgprofile/ei_gridengine
+    sed -i "s/.*UTDB_HOST.*/export UTDB_HOST=$UTDB_HOST/" .fgprofile/ei_gridengine &&\
+    sed -i "s/.*UTDB_PORT.*/export UTDB_PORT=$UTDB_PORT/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/.*UTDB_USER.*/export UTDB_USER=$UTDB_USER/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/.*UTDB_PASSWD.*/export UTDB_PASSWD=$UTDB_PASSWD/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/.*UTDB_NAME.*/export UTDB_NAME=$UTDB_NAME/" .fgprofile/ei_gridengine &&\
+    sed -i "s/.*UTDB_OPTS.*/export UTDB_OPTS=''/" .fgprofile/ei_gridengine &&\
+    cat .fgprofile/fgdb && cat .fgprofile/ei_gridengine
 
 
 # nginx port 80 available to the world outside this container
@@ -137,7 +138,7 @@ RUN ln -s fgapiserver.py main.py &&\
     sed -i "s/^fgapisrv_logcfg.*/fgapisrv_logcfg = $FGAPISRV_LOGCFG/" fgapiserver.conf &&\
     sed -i "s/^fgapisrv_dbver.*/fgapisrv_dbver = $FGAPISRV_DBVER/" fgapiserver.conf &&\
     sed -i "s/^fgapisrv_secret.*/fgapisrv_secret = $FGAPISRV_SECRET/" fgapiserver.conf &&\
-    sed -i "s/^fgapisrv_notoken.*/fgapisrv_notoken = $FGAPISRV_NOTOKEN/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_notoken\ .*/fgapisrv_notoken = $FGAPISRV_NOTOKEN/" fgapiserver.conf &&\
     sed -i "s/^fgapisrv_notokenusr.*/fgapisrv_notokenusr = $FGAPISRV_NOTOKENUSR/" fgapiserver.conf &&\
     sed -i "s/^fgapisrv_lnkptvflag.*/fgapisrv_lnkptvflag = $FGAPISRV_LNKPTVFLAG/" fgapiserver.conf &&\
     sed -i "s/^fgapisrv_ptvendpoint.*/fgapisrv_ptvendpoint = $FGAPISRV_PTVENDPOINT/" fgapiserver.conf &&\
@@ -153,3 +154,6 @@ RUN ln -s fgapiserver.py main.py &&\
     sed -i "s/^fgapisrv_db_name.*/fgapisrv_db_name = $FGAPISRV_DB_NAME/" fgapiserver.conf &&\
     cp /app_orig/uwsgi.ini uwsgi.ini &&\
     pip install -r requirements.txt
+
+# Setup FGDB profile (all users)
+RUN echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh 
