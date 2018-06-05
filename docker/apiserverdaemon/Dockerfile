@@ -12,11 +12,20 @@ ENV MYSQL_PORT 3306
 ENV MYSQL_USER fgapiserver
 ENV MYSQL_PASSWORD fgapiserver_password
 ENV MYSQL_DATABASE fgapiserver
-ENV FGDB_GIT https://github.com/indigo-dc/APIServerDaemon.git
+ENV FGDB_GIT https://github.com/FutureGatewayFramework/APIServerDaemon.git
 ENV FGDB_BRANCH master 
 ENV TOMCAT_USER tomcat
 ENV TOMCAT_PASSWORD tomcat__pass
-
+# Environment for scripts
+ENV FGSETUP_GIT https://github.com/FutureGatewayFramework/fgSetup.git
+ENV FGSETUP_BRANCH master
+# Environment for fgdb
+ENV MYSQL_ROOT_PASSWORD rpass
+ENV FGDB_HOST fgdb 
+ENV FGDB_PORT 3306
+ENV FGDB_USER fgapiserver
+ENV FGDB_PASSWD fgapiserver_password
+ENV FGDB_NAME fgapiserver
 # Executor Interfaces environment
 ENV UTDB_HOST fgdb
 ENV UTDB_PORT 3306
@@ -28,21 +37,31 @@ ENV GNCENG_ADP_ROCCI_BRANCH master
 ENV GNCENG https://github.com/csgf/grid-and-cloud-engine.git
 ENV GNCENG_BRANCH FutureGateway
 
-# User and working directory
-WORKDIR $FG_DIR
-
 # FG User creation and packages installation
 RUN adduser --disabled-password --gecos "" $FG_USER &&\
     chown -R $FG_USER:$FG_USER $FG_DIR &&\
     apt-get update &&\
-    apt-get install -y --no-install-recommends\
-            openjdk-8-jdk ant mysql-client libmysql-java\
-            procps sudo git mlocate vim &&\
+    apt-get install\
+            -y\
+            --no-install-recommends\
+            openssh-client\
+            openjdk-8-jdk\
+            ant\
+            mysql-client\
+            libmysql-java\
+            procps\
+            sudo\
+            git\
+            mlocate\
+            vim\
+            locales &&\
+    locale-gen en_US.UTF-8 &&\
     sudo echo "$FG_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* &&\
     sudo chown -R root:futuregateway $CATALINA_HOME &&\
-    sudo chmod -R g+r+w $CATALINA_HOME
+    sudo chmod -R g+r+w $CATALINA_HOME &&\
+    echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh
 
 # Setup Tomcat mgr user and roles
 RUN mv $CATALINA_HOME/conf/tomcat-users.xml $CATALINA_HOME/conf/tomcat-users.xml_orig &&\
@@ -154,6 +173,30 @@ RUN sudo chmod 644 $CATALINA_HOME/conf/server.xml &&\
     cat $CATALINA_HOME/conf/server.xml_orig | tail -n $((ALN-LN+1)) >> $CATALINA_HOME/conf/server.xml &&\
     echo "server.xml" &&\
     cat $CATALINA_HOME/conf/server.xml
+
+# FutureGateway scripts
+RUN git clone $FGSETUP_GIT -b $FGSETUP_BRANCH &&\
+    mkdir -p .fgprofile &&\
+    cp fgSetup/scripts/commons .fgprofile/commons &&\
+    cp fgSetup/scripts/fgdb .fgprofile/fgdb &&\
+    cp fgSetup/scripts/fgdb .fgprofile/fgapiserver &&\
+    cp fgSetup/scripts/ei_gridengine .fgprofile/ei_gridengine &&\
+# Configure scripts
+    sed -i "s/.*FGDB_HOST.*/export FGDB_HOST=$FGDB_HOST/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_PORT.*/export FGDB_PORT=$FGDB_PORT/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_USER.*/export FGDB_USER=$FGDB_USER/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_PASSWD.*/export FGDB_PASSWD=$FGDB_PASSWD/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_NAME.*/export FGDB_NAME=$FGDB_NAME/" .fgprofile/fgdb &&\
+    sed -i "s/.*ASDB_OPTS.*/export ASDB_OPTS=''/" .fgprofile/fgdb &&\
+    sed -i "s/.*FGDB_ROOTPWD.*/export FGDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgdb &&\
+# Configuring scripts ei_gridengine
+    sed -i "s/.*UTDB_HOST.*/export UTDB_HOST=$UTDB_HOST/" .fgprofile/ei_gridengine &&\
+    sed -i "s/.*UTDB_PORT.*/export UTDB_PORT=$UTDB_PORT/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/.*UTDB_USER.*/export UTDB_USER=$UTDB_USER/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/.*UTDB_PASSWD.*/export UTDB_PASSWD=$UTDB_PASSWD/" .fgprofile/ei_gridengine &&\
+#    sed -i "s/.*UTDB_NAME.*/export UTDB_NAME=$UTDB_NAME/" .fgprofile/ei_gridengine &&\
+    sed -i "s/.*UTDB_OPTS.*/export UTDB_OPTS=''/" .fgprofile/ei_gridengine &&\
+    cat .fgprofile/fgdb && cat .fgprofile/ei_gridengine
 
 #
 # Build APIServerDaemon WAR
