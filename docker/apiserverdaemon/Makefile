@@ -55,6 +55,6 @@ run: network shdir
 	    --add-host "fgtest:$$FGTEST_IP"\
 	    -v $$HOME/fgVolumes/apps:/app/apps\
 	    -v $$HOME/fgVolumes/iosandbox:/tmp/fgiosandbox\
-	    -h fgapiserver\
+	    -h apiserverdaemon\
 	    $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
         echo "Sorry, one of the nodes FGDB or FGTEST is not running!"
