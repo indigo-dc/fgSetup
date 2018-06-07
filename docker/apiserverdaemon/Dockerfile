@@ -102,9 +102,6 @@ RUN git clone $FGDB_GIT -b $FGDB_BRANCH &&\
 	 sed -i "s/localhost:/fgdb:/"\
            APIServerDaemon/web/META-INF/context.xml &&\
     mkdir -p APIServerDaemon/work/WEB-INF/classes/it/infn/ct
-#    cp -r APIServerDaemon/web/WEB-INF/classes/it/infn/ct/*.properties\
-#          APIServerDaemon/work/WEB-INF/classes/it/infn/ct/ &&\
-#    cd APIServerDaemon && mkdir -p web/WEB-INF/lib && ant all
 
 #
 # Executor Interfaces

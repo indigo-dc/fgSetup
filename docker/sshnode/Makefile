@@ -30,7 +30,17 @@ network:
                 && docker network create $(FG_NETWORK)\
                 || echo "Network $(FG_NETWORK) already running"
 
-run: network
+apiserverdaemon:
+	ASD_CONTAINER=`docker ps -aqf name=apiserverdaemon`
+	echo $$ASD_CONTAINER
+	[ "`docker ps -aqf name=apiserverdaemon`" != "" ] &&\
+            docker exec  `docker ps -aqf name=apiserverdaemon`\
+	    /bin/bash -c 'echo "Host fgtest">>/etc/ssh/ssh_config &&\
+	                  echo "    StrictHostKeyChecking no">>/etc/ssh/ssh_config &&\
+			  echo "    UserKnownHostsFile=/dev/null">>/etc/ssh/ssh_config'\
+	|| echo "APIServerDaemon is not running"
+
+run: network apiserverdaemon
 	@FGDB_IP=`docker network inspect $(FG_NETWORK)|\
                   jq '.[0].Containers | .[].Name+" "+.[].IPv4Address' |\
                   xargs echo |\

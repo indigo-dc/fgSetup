@@ -1,5 +1,5 @@
 DOCKER_REPO = futuregateway
-IMAGE_NAME = apiserverdaemon
+IMAGE_NAME = fghttpd
 IMAGE_TAG = 0.1
 FG_NETWORK = fgnetwork
 FG_VOLUMESDIR = $$HOME/fgVolumes
@@ -19,9 +19,7 @@ default:
 	#@echo "Tagged image: $(IMAGE_TAG) - $(IMAGE_TAGGED_ID)"	
 
 image: Dockerfile
-	docker build\
-               --no-cache\
-               -t $(DOCKER_REPO)/$(IMAGE_NAME):latest .
+	docker build --no-cache  -t $(DOCKER_REPO)/$(IMAGE_NAME):latest .
 	docker tag $(DOCKER_REPO)/$(IMAGE_NAME):latest $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 publish: image 
@@ -52,11 +50,12 @@ run: network shdir
 	    -e FGDB_HOST=$(FG_RUN_NET)\
             --net $(FG_NETWORK)\
             --name $(IMAGE_NAME)_$(IMAGE_TAG)\
-            -p8088:8080\
+            -p80:80\
+	    -p443:443\
 	    --add-host "fgdb:$$FGDB_IP"\
 	    --add-host "fgtest:$$FGTEST_IP"\
 	    -v $$HOME/fgVolumes/apps:/app/apps\
 	    -v $$HOME/fgVolumes/iosandbox:/tmp/fgiosandbox\
-	    -h apiserverdaemon\
+	    -h httpd\
 	    $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
         echo "Sorry, one of the nodes FGDB or FGTEST is not running!"
