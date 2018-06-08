@@ -39,11 +39,9 @@ shdir:
                                   || mkdir -p $(FG_IOSANDBOXDIR)/iosandbox
 
 run: network shdir
-	@FGDB_IP=`docker network inspect $(FG_NETWORK)|\
-                  jq '.[0].Containers | .[].Name+" "+.[].IPv4Address' |\
-                  xargs echo |\
-                  awk '{ print $$2 }' |\
-                  awk -F"/" '{ print $$1 }'` &&\
+	@FGDB_IP=`docker network inspect fgnetwork|\
+		jq '.[].Containers[]|select(.Name|contains("fgdb"))|.IPv4Address'|\
+		xargs echo| sed 's/\// /' | awk '{ print $$1 }'` &&\
         [ "$$FGDB_IP" != "" ] &&\
         echo "fgdb IP: $$FGDB_IP" &&\
         docker run -d\

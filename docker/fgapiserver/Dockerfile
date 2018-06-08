@@ -155,5 +155,9 @@ RUN ln -s fgapiserver.py main.py &&\
     cp /app_orig/uwsgi.ini uwsgi.ini &&\
     pip install -r requirements.txt
 
+# Test purposes, execute PTV and TOSCA simulator
+RUN echo "./fgapiserver_ptv.py 2>fgapiserver.log >fgapiserver.log &" > prestart.sh
+
+
 # Setup FGDB profile (all users)
 RUN echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh 

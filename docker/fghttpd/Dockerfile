@@ -47,6 +47,7 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
             mlocate\
             vim\
             locales &&\
+            curl &&\
    #sudo echo "$FG_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* &&\

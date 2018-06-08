@@ -44,6 +44,9 @@ run: network shdir
 	FGTEST_IP=`docker network inspect fgnetwork|\
 	        jq '.[].Containers[]|select(.Name|contains("sshnode"))|.IPv4Address'|\
 		xargs echo| sed 's/\// /' | awk '{ print $$1 }'` &&\
+	FGAPISRV_IP=`docker network inspect fgnetwork|\
+                jq '.[].Containers[]|select(.Name|contains("fgapiserver"))|.IPv4Address'|\
+                xargs echo| sed 's/\// /' | awk '{ print $$1 }'` &&\
         [ "$$FGDB_IP" != "" -a "$$FGTEST_IP" != "" ] &&\
         echo "fgdb IP: $$FGDB_IP" &&\
         docker run -d\
@@ -54,6 +57,7 @@ run: network shdir
 	    -p443:443\
 	    --add-host "fgdb:$$FGDB_IP"\
 	    --add-host "fgtest:$$FGTEST_IP"\
+	    --add-host "fgapiserver:$$FGAPISRV_IP"\
 	    -v $$HOME/fgVolumes/apps:/app/apps\
 	    -v $$HOME/fgVolumes/iosandbox:/tmp/fgiosandbox\
 	    -h httpd\
