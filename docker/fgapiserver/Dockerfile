@@ -111,7 +111,8 @@ RUN git clone $FGSETUP_GIT -b $FGSETUP_BRANCH &&\
 
 
 # nginx port 80 available to the world outside this container
-EXPOSE 80 
+EXPOSE 8888
+EXPOSE 8889 
 
 # Back to the root user
 USER root
