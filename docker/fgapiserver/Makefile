@@ -147,12 +147,15 @@ testrun: network test_shdir
 	    -e FLASK_DEBUG=1\
             --net $(FG_NETWORK)\
             --name $(IMAGE_NAME)_test_$(IMAGE_TAG)\
-            -p8888:80\
-            -p8889:8889\
+            -p18888:80\
+            -p18889:8889\
             --add-host "fgdb:$$FGDB_IP"\
             -v $(FG_APISERVERDIR):/app\
 	    -v $(FG_IOSANDBOXDIR):/tmp/fgiosandbox\
 	    -h fgapiserver_test\
             $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)\
-	    bash -c "while true ; do sleep 10 ; done" ||\
+	    bash -c "while true ; do sleep 10 ; done" &&
+	echo "WARNING: fgapiserver in test mode is active, but no server is actually running" &&\
+	echo "         To start fgapiserver, execute the following command inside the container:" &&\
+	echo "         $$ flask run --host=0.0.0.0 --port=80" ||\
         echo "Sorry, FGDB node is not running!"
