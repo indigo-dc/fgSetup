@@ -7,7 +7,7 @@ FG_VOLUMEDIR = $$HOME/fgVolumes
 FG_IOSANDBOXDIR = $(FG_VOLUMEDIR)/iosandbox
 FG_APISERVERDIR = $(FG_VOLUMEDIR)/fgAPIServer
 FG_APISERVERGIT = https://github.com/FutureGatewayFramework/fgAPIServer.git
-
+FG_APISERVERGITBRANCH = master
 # Environmnt for fgapiserver.conf
 # Used only in the case of 'testrun' recipe
 FGDB_HOST = fgdb
@@ -80,7 +80,7 @@ test_shdir:
                                   || mkdir -p $(FG_IOSANDBOXDIR)
 	sudo rm -rf $(FG_APISERVERDIR) &&\
 	cd $(FG_VOLUMEDIR) &&\
-       	git clone $(FG_APISERVERGIT) &&\
+       	git clone $(FG_APISERVERGIT) -b $(FG_APISERVERGITBRANCH) &&\
 	cd - &&\
 	cd $(FG_APISERVERDIR) &&\
 	ln -s fgapiserver.py main.py &&\
