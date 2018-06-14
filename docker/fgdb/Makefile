@@ -2,10 +2,7 @@ DOCKER_REPO = futuregateway
 IMAGE_NAME = fgdb
 IMAGE_TAG = 0.1
 FG_NETWORK = fgnetwork
-FG_MYSQLIR = $$HOME/fgVolumes/fgdb_mysql
-#IMAGE_LATEST_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep latest | awk '{ print $3 }')
-#IMAGE_TAGGED_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep $(IMAGE_TAG) | awk '{ print $3 }')
-FG_RUN_NET = $(shell docker network list --format '{{.Name}}' | grep $(FG_NETWORK))
+FG_MYSQLDIRVOLNAME = fg_mysql
 
 default:
 	@echo "Usage: make <image|pubimg>"
@@ -28,19 +25,21 @@ publish: image
 	docker push $(DOCKER_REPO)/$(IMAGE_NAME):latest
 
 network:
-	@[ "$(shell docker network list | grep $(FG_NETWORK))" = "" ]\
-                && docker network create $(FG_NETWORK)\
-                || echo "Network $(FG_NETWORK) already running"
+	@[ "$(shell docker network list | grep $(FG_NETWORK))" = "" ] &&\
+            docker network create $(FG_NETWORK) ||\
+	    echo "Network $(FG_NETWORK) already running"
 
-shdir:
-	@[ -d $(FG_MYSQLIR) ] && echo "fgdb' mysql directory exists"\
-                                  || mkdir -p $(FG_MYSQLIR)
+volumes:
+	@FGMYSQLVOL=`docker volume inspect $(FG_MYSQLDIRVOLNAME) 2>/dev/null | jq '.[].Mountpoint' | xargs echo` &&\
+	[ -z "$$FGMYSQLVOL" ] &&\
+     	    docker volume create $(FG_MYSQLDIRVOLNAME) ||\
+       	    echo "FG apps volume exists at: $$FGMYSQLVOL"
 
-run: network shdir
+run: network volumes 
 	docker run -d\
 		   --net $(FG_NETWORK)\
 		   --name $(IMAGE_NAME)_$(IMAGE_TAG)\
 	           -p 3306:3306\
 		   -h fgdb \
-		   -v $$HOME/fgVolumes/fgdb_mysql:/var/lib/mysql\
+		   -v $(FG_MYSQLDIRVOLNAME):/var/lib/mysql\
 	   	   $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)

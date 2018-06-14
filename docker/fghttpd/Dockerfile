@@ -25,9 +25,10 @@ ENV UTDB_PORT 3306
 ENV UTDB_USER tracking_user
 ENV UTDB_PASSWORD usertracking
 ENV UTDB DATABASE userstracking
-# HTTPS Settingd
-ENV HTTPD_CERT cert.pem 
-ENV HTTPD_KEY key.pem
+
+# SSL/HTTPS Certificates
+ADD server.crt /usr/local/apache2/conf
+ADD server.key /usr/local/apache2/conf
 
 # Package Installation
 RUN adduser --disabled-password --gecos "" $FG_USER &&\
@@ -37,9 +38,8 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
     chown -R $FG_TEST:$FG_TEST $FG_TESTDIR &&\
     echo "$FG_TEST:$FG_TESTPWD" | /usr/sbin/chpasswd &&\
     apt-get update &&\
-    apt-get install\
-            -y\
-            --no-install-recommends\
+    apt-get install -y --no-install-recommends\
+            curl\
             ca-certificates\
             sudo\
             git\
@@ -47,16 +47,16 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
             mlocate\
             vim\
             locales &&\
-            curl &&\
    #sudo echo "$FG_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* &&\
     locale-gen en_US.UTF-8 &&\
-    sed -i 's/#Include\ conf\\/extra\\/httpd-ssl.conf/Include\ conf\\/extra\\/httpd-ssl.conf/' /usr/local/apache2/conf/httpd.conf
+    sed -i 's/#LoadModule\ ssl_module\ modules\/mod_ssl.so/LoadModule\ ssl_module\ modules\/mod_ssl.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+    sed -i 's/#LoadModule\ socache_shmcb_module\ modules\/mod_socache_shmcb.so/LoadModule\ socache_shmcb_module\ modules\/mod_socache_shmcb.so/' /usr/local/apache2/conf/httpd.conf &&\
+    sed -i 's/#Include\ conf\/extra\/httpd-ssl.conf/Include\ conf\/extra\/httpd-ssl.conf/'\
+           /usr/local/apache2/conf/httpd.conf &&\
     echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh
-
-ADD $HTTPD_CERT /usr/local/apache2/conf/$HTTPD_CERT
-ADD $HTTPD_KEY /usr/local/apache2/conf/$HTTPD_KEY
 
 # User and working directory
 USER $FG_USER

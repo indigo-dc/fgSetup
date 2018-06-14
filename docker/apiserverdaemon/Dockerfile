@@ -123,10 +123,14 @@ RUN cd grid-and-cloud-engine/grid-and-cloud-engine-threadpool &&\
     #mvn clean install -Dmaven.compiler.source=1.6 -Dmaven.compiler.target=1.6 &&\
     mvn install &&\
     cp target/grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar \
-       ../../APIServerDaemon/lib/grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar
-RUN cd grid-and-cloud-engine/grid-and-cloud-engine_M; mvn clean install -Dmaven.compiler.source=1.6 -Dmaven.compiler.target=1.6 &&\
+       ../../APIServerDaemon/lib/grid-and-cloud-engine-threadpool-0.0.1-SNAPSHOT.jar &&\
+    cp target/lib/*.jar ../../APIServerDaemon/lib/
+RUN cd grid-and-cloud-engine/grid-and-cloud-engine_M &&\
+    #mvn clean install -Dmaven.compiler.source=1.6 -Dmaven.compiler.target=1.6 &&\
+    mvn install &&\
     cp target/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar \
-       ../../APIServerDaemon/lib/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar
+       ../../APIServerDaemon/lib/grid-and-cloud-engine_M-0.0.1-SNAPSHOT.jar &&\
+    cp target/lib/*.jar ../../APIServerDaemon/lib/
 
 # Setup Tomcat' connection pools for UsersTracking
 RUN sudo chmod 644 $CATALINA_HOME/conf/server.xml &&\

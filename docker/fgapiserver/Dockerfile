@@ -7,6 +7,7 @@ MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
 # Environment for fgAPIServer
 ENV FG_USER futuregateway
 ENV FG_DIR /home/futuregateway
+ENV FGAPISRV_APPSDIR /app/apps
 ENV FGAPISERVER_GIT https://github.com/FutureGatewayFramework/fgAPIServer.git 
 ENV FGAPISERVER_BRANCH master
 # Environment for fgdb
@@ -31,7 +32,8 @@ ENV FGAPISERVER_NAME API Server
 ENV FGAPISRV_HOST 0.0.0.0
 ENV FGAPISRV_PORT 8888
 ENV FGAPISRV_DEBUG True
-ENV FGAPISRV_IOSANDBOX \\/app\\/fgiosandbox
+ENV FGAPISRV_IOSANDBOX /app/fgiosandbox
+ENV FGAPISRV_IOSANDBOX_ESC \\/app\\/fgiosandbox
 ENV FGAPISRV_GEAPPID 10000
 ENV FGJSON_INDENT 4
 ENV FGAPISRV_KEY ''
@@ -118,10 +120,9 @@ EXPOSE 8889
 USER root
 
 # Configure the webapp
-RUN cp -r fgAPIServer/ / &&\
-    mv /app /app_orig &&\
-    mv /fgAPIServer /app &&\
-    mkdir /app/iosandbox
+RUN mv /app /app_orig &&\
+    mv fgAPIServer /app &&\
+    mkdir -p $FGAPISRV_IOSANDBOX
 
 WORKDIR /app
 
@@ -131,7 +132,7 @@ RUN ln -s fgapiserver.py main.py &&\
     sed -i "s/^fgapisrv_host.*/fgapisrv_host = $FGAPISRV_HOST/" fgapiserver.conf &&\
     sed -i "s/^fgapisrv_port.*/fgapisrv_port = $FGAPISRV_PORT/" fgapiserver.conf &&\
     sed -i "s/^fgapisrv_debug.*/fgapisrv_debug = $FGAPISRV_DEBUG/" fgapiserver.conf &&\
-    sed -i "s/^fgapisrv_iosandbox.*/fgapisrv_iosandbox = $FGAPISRV_IOSANDBOX/" fgapiserver.conf &&\
+    sed -i "s/^fgapisrv_iosandbox.*/fgapisrv_iosandbox = $FGAPISRV_IOSANDBOX_ESC/" fgapiserver.conf &&\
     sed -i "s/^fgapisrv_geappid.*/fgapisrv_geappid = $FGAPISRV_GEAPPID/" fgapiserver.conf &&\
     sed -i "s/^fgjson_indent.*/fgjson_indent = $FGJSON_INDENT/" fgapiserver.conf &&\
     sed -i "s/^fgapisrv_key.*/fgapisrv_key = $FGAPISRV_KEY/" fgapiserver.conf &&\

@@ -62,4 +62,4 @@ run: network shdir
 	    -v $$HOME/fgVolumes/iosandbox:/tmp/fgiosandbox\
 	    -h httpd\
 	    $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
-        echo "Sorry, one of the nodes FGDB or FGTEST is not running!"
+        echo "Sorry, one of the nodes FGDB ($$FGDB_IP) or FGTEST ($$FGTEST_IP) or FGAPISRV ($$FGAPISRV_IP) is not running!"

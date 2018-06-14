@@ -2,9 +2,9 @@ DOCKER_REPO = futuregateway
 IMAGE_NAME = apiserverdaemon
 IMAGE_TAG = 0.1
 FG_NETWORK = fgnetwork
-FG_VOLUMESDIR = $$HOME/fgVolumes
-#IMAGE_LATEST_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep latest | awk '{ print $3 }')
-#IMAGE_TAGGED_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep $(IMAGE_TAG) | awk '{ print $3 }')
+FG_APISRVVOLNAME = fg_apiserver
+FG_APPSDIRVOLNAME = fg_apps
+FG_IOSNDBXVOLNAME = fg_iosandbox
 
 default:
 	@echo "Usage: make <image|pubimg>"
@@ -33,13 +33,17 @@ network:
                 && docker network create $(FG_NETWORK)\
                 || echo "Network $(FG_NETWORK) already running"
 
-shdir:
-	@[ -d fgVolumes/apps ] && echo "fgapiserver' apps directory exists"\
-                                  || mkdir -p $(FG_VOLUMESDIR)/apps
-	@[ -d fgVolumes/iosandbox ] && echo "fgapiserver' iosandbox directory exists"\
-                                  || mkdir -p $(FG_VOLUMESDIR)/iosandbox
+volumes:
+	@FGAPPSVOL=`docker volume inspect  $(FG_APPSDIRVOLNAME) 2>/dev/null | jq '.[].Mountpoint' | xargs echo` &&\
+	[ -z "$$FGAPPSVOL" ] &&\
+	       	docker volume create $(FG_APPSDIRVOLNAME) ||\
+	       	echo "FG apps volume exists at: $$FG_APPSDIRVOL" &&\
+	FGIOSBSVOL=`docker volume inspect  $(FG_IOSNDBXVOLNAME) 2>/dev/null | jq '.[].Mountpoint' | xargs echo` &&\
+	[ -z "$$FGIOSBSVOL" ] &&\
+	       	docker volume create $(FG_IOSNDBXVOLNAME) ||\
+                echo "FG apps volume exists at: $$FGIOSBSVOL"
 
-run: network shdir
+run: network volumes 
 	FGDB_IP=`docker network inspect fgnetwork|\
 		jq '.[].Containers[]|select(.Name|contains("fgdb"))|.IPv4Address'|\
 		xargs echo| sed 's/\// /' | awk '{ print $$1 }'` &&\
@@ -55,8 +59,8 @@ run: network shdir
             -p8088:8080\
 	    --add-host "fgdb:$$FGDB_IP"\
 	    --add-host "fgtest:$$FGTEST_IP"\
-	    -v $$HOME/fgVolumes/apps:/app/apps\
-	    -v $$HOME/fgVolumes/iosandbox:/tmp/fgiosandbox\
+	    -v $(FG_APPSDIRVOLNAME):/app/apps\
+	    -v $(FG_IOSNDBXVOLNAME):/tmp/fgiosandbox\
 	    -h apiserverdaemon\
 	    $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
         echo "Sorry, one of the nodes FGDB or FGTEST is not running!"
