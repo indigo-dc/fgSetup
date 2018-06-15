@@ -121,7 +121,22 @@ RUN cd jsaga-adaptor-rocci && ant all &&\
     cp dist/jsaga-adaptor-rocci.jar \
        ../APIServerDaemon/lib/jsaga-adaptor-rocci.jar
 # GridnCloud Engine
-RUN git clone $GNCENG -b $GNCENG_BRANCH
+RUN git clone $GNCENG -b $GNCENG_BRANCH &&\
+    cd grid-and-cloud-engine/grid-and-cloud-engine_M &&\
+    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+           src/main/resources/hibernateStandAlone.cfg.xml &&\
+    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+           src/main/resources/hibernate.cfg.xml &&\
+    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+           src/main/java/it/infn/ct/GridEngine/JobCollection/JobCollectionSubmission.java &&\
+    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+           src/main/java/it/infn/ct/GridEngine/Job/MultiInfrastructureJobSubmission.java &&\
+    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+           src/main/java/it/infn/ct/GridEngine/Job/JSagaJobSubmission.java &&\
+    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+           src/main/java/it/infn/ct/GridEngine/UsersTracking/UsersTrackingDBInterface.java &&\
+    cd -
+
 RUN cd grid-and-cloud-engine/grid-and-cloud-engine-threadpool &&\
     #mvn clean install -Dmaven.compiler.source=1.6 -Dmaven.compiler.target=1.6 &&\
     mvn install &&\
