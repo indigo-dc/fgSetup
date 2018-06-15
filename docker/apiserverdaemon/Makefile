@@ -5,6 +5,7 @@ FG_NETWORK = fgnetwork
 FG_APISRVVOLNAME = fg_apiserver
 FG_APPSDIRVOLNAME = fg_apps
 FG_IOSNDBXVOLNAME = fg_iosandbox
+FGAPISRV_IOSANDBOX = /app/fgiosandbox
 
 default:
 	@echo "Usage: make <image|pubimg>"
@@ -34,10 +35,6 @@ network:
                 || echo "Network $(FG_NETWORK) already running"
 
 volumes:
-	@FGAPPSVOL=`docker volume inspect  $(FG_APPSDIRVOLNAME) 2>/dev/null | jq '.[].Mountpoint' | xargs echo` &&\
-	[ -z "$$FGAPPSVOL" ] &&\
-	       	docker volume create $(FG_APPSDIRVOLNAME) ||\
-	       	echo "FG apps volume exists at: $$FG_APPSDIRVOL" &&\
 	FGIOSBSVOL=`docker volume inspect  $(FG_IOSNDBXVOLNAME) 2>/dev/null | jq '.[].Mountpoint' | xargs echo` &&\
 	[ -z "$$FGIOSBSVOL" ] &&\
 	       	docker volume create $(FG_IOSNDBXVOLNAME) ||\
@@ -59,8 +56,7 @@ run: network volumes
             -p8088:8080\
 	    --add-host "fgdb:$$FGDB_IP"\
 	    --add-host "fgtest:$$FGTEST_IP"\
-	    -v $(FG_APPSDIRVOLNAME):/app/apps\
-	    -v $(FG_IOSNDBXVOLNAME):/tmp/fgiosandbox\
+	    -v $(FG_IOSNDBXVOLNAME):$(FGAPISRV_IOSANDBOX)\
 	    -h apiserverdaemon\
 	    $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
         echo "Sorry, one of the nodes FGDB or FGTEST is not running!"

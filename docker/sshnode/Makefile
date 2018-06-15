@@ -2,8 +2,6 @@ DOCKER_REPO = futuregateway
 IMAGE_NAME = sshnode
 IMAGE_TAG = 0.1
 FG_NETWORK = fgnetwork
-#IMAGE_LATEST_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep latest | awk '{ print $3 }')
-#IMAGE_TAGGED_ID = $(shell docker image list | grep $(DOCKER_REPO)/$(IMAGE_NAME) | grep $(IMAGE_TAG) | awk '{ print $3 }')
 
 default:
 	@echo "Usage: make <image|pubimg>"
@@ -14,8 +12,6 @@ default:
 	@echo "                             $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE:_TAG)"
 	@echo "             on the Docker-hub"
 	@echo ""
-	#@echo "Latest image: $(IMAGE_LATEST_ID)"
-	#@echo "Tagged image: $(IMAGE_TAG) - $(IMAGE_TAGGED_ID)"	
 
 image: Dockerfile
 	docker build --no-cache  -t $(DOCKER_REPO)/$(IMAGE_NAME):latest .
@@ -31,21 +27,19 @@ network:
                 || echo "Network $(FG_NETWORK) already running"
 
 apiserverdaemon:
-	ASD_CONTAINER=`docker ps -aqf name=apiserverdaemon`
-	echo $$ASD_CONTAINER
+	@ASD_CONTAINER=`docker ps -aqf name=apiserverdaemon` &&\
+	echo $$ASD_CONTAINER &&\
 	[ "`docker ps -aqf name=apiserverdaemon`" != "" ] &&\
-            docker exec  `docker ps -aqf name=apiserverdaemon`\
+            docker exec  $$ASD_CONTAINER\
 	    /bin/bash -c 'echo "Host fgtest">>/etc/ssh/ssh_config &&\
 	                  echo "    StrictHostKeyChecking no">>/etc/ssh/ssh_config &&\
 			  echo "    UserKnownHostsFile=/dev/null">>/etc/ssh/ssh_config'\
 	|| echo "APIServerDaemon is not running"
 
 run: network apiserverdaemon
-	@FGDB_IP=`docker network inspect $(FG_NETWORK)|\
-                  jq '.[0].Containers | .[].Name+" "+.[].IPv4Address' |\
-                  xargs echo |\
-                  awk '{ print $$2 }' |\
-                  awk -F"/" '{ print $$1 }'` &&\
+	@FGDB_IP=`docker network inspect fgnetwork|\
+                jq '.[].Containers[]|select(.Name|contains("fgdb"))|.IPv4Address'|\
+                xargs echo| sed 's/\// /' | awk '{ print $$1 }'` &&\
         [ "$$FGDB_IP" != "" ] &&\
           echo "fgdb IP: $$FGDB_IP" &&\
 	  docker run -d\

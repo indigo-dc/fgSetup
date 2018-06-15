@@ -16,6 +16,7 @@ ENV FGDB_GIT https://github.com/FutureGatewayFramework/APIServerDaemon.git
 ENV FGDB_BRANCH master 
 ENV TOMCAT_USER tomcat
 ENV TOMCAT_PASSWORD tomcat__pass
+ENV FGAPISRV_IOSANDBOX /app/fgiosandbox
 # Environment for scripts
 ENV FGSETUP_GIT https://github.com/FutureGatewayFramework/fgSetup.git
 ENV FGSETUP_BRANCH master
@@ -56,11 +57,13 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
             vim\
             locales &&\
     locale-gen en_US.UTF-8 &&\
-    sudo echo "$FG_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&\
+    echo "$FG_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* &&\
-    sudo chown -R root:futuregateway $CATALINA_HOME &&\
-    sudo chmod -R g+r+w $CATALINA_HOME &&\
+    mkdir -p $FGAPISRV_IOSANDBOX &&\
+    chown -R root:futuregateway $FGAPISRV_IOSANDBOX &&\ 
+    chown -R root:futuregateway $CATALINA_HOME &&\
+    chmod -R g+r+w $CATALINA_HOME &&\
     echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh
 
 # Setup Tomcat mgr user and roles
