@@ -1,5 +1,5 @@
 # OS
-FROM tomcat 
+FROM tomcat:7
 
 # Maintainer
 MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
@@ -32,7 +32,7 @@ ENV UTDB_HOST fgdb
 ENV UTDB_PORT 3306
 ENV UTDB_USER tracking_user
 ENV UTDB_PASSWORD usertracking
-ENV UTDB DATABASE userstracking
+ENV UTDB_DATABASE userstracking
 ENV GNCENG_ADP_ROCCI https://github.com/csgf/jsaga-adaptor-rocci.git
 ENV GNCENG_ADP_ROCCI_BRANCH master
 ENV GNCENG https://github.com/csgf/grid-and-cloud-engine.git
@@ -46,7 +46,7 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
             -y\
             --no-install-recommends\
             openssh-client\
-            openjdk-8-jdk\
+            openjdk-7-jdk\
             ant\
             mysql-client\
             libmysql-java\
@@ -90,19 +90,19 @@ WORKDIR $FG_DIR
 
 # Getting FG repo and setup properties files
 RUN git clone $FGDB_GIT -b $FGDB_BRANCH &&\
-    sed -i "s/apisrv_dbhost\ =\ localhost/apisrv_dbhost\ =\ fgdb/"\
+    sed -i "s/apisrv_dbhost\ =\ localhost/apisrv_dbhost\ =\ $FGDB_HOST/"\
         APIServerDaemon/web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties &&\
-    sed -i "s/utdb_host\ =\ localhost/utdb_host\ =\ fgdb/"\
+    sed -i "s/utdb_host\ =\ localhost/utdb_host\ =\ $FGDB_HOST/"\
          APIServerDaemon/web/WEB-INF/classes/it/infn/ct/APIServerDaemon.properties &&\
-    sed -i "s/apisrv_dbhost\ =\ localhost/apisrv_dbhost\ =\ fgdb/"\
+    sed -i "s/apisrv_dbhost\ =\ localhost/apisrv_dbhost\ =\ $FGDB_HOST/"\
         APIServerDaemon/web/WEB-INF/classes/it/infn/ct/GridEngineDaemon.properties &&\
-    sed -i "s/utdb_host\ =\ localhost/utdb_host\ =\ fgdb/"\
+    sed -i "s/utdb_host\ =\ localhost/utdb_host\ =\ $FGDB_HOST/"\
          APIServerDaemon/web/WEB-INF/classes/it/infn/ct/GridEngineDaemon.properties &&\
     sed -i "s/localhost:8888/fgapiserver/"\
         APIServerDaemon/web/WEB-INF/classes/it/infn/ct/ToscaIDC.properties &&\
     sed -i "s/localhost:8889\\/get-token/fgapiserver:8889\\/get-token/"\
          APIServerDaemon/web/WEB-INF/classes/it/infn/ct/ToscaIDC.properties &&\
-	 sed -i "s/localhost:/fgdb:/"\
+	 sed -i "s/localhost:/$FGDB_HOST:/"\
            APIServerDaemon/web/META-INF/context.xml &&\
     mkdir -p APIServerDaemon/work/WEB-INF/classes/it/infn/ct
 
@@ -123,18 +123,18 @@ RUN cd jsaga-adaptor-rocci && ant all &&\
 # GridnCloud Engine
 RUN git clone $GNCENG -b $GNCENG_BRANCH &&\
     cd grid-and-cloud-engine/grid-and-cloud-engine_M &&\
-    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+    sed -i "s/localhost/$FGDB_HOST:$FGDB_PORT/"\
            src/main/resources/hibernateStandAlone.cfg.xml &&\
-    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
-           src/main/resources/hibernate.cfg.xml &&\
-    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
-           src/main/java/it/infn/ct/GridEngine/JobCollection/JobCollectionSubmission.java &&\
-    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
-           src/main/java/it/infn/ct/GridEngine/Job/MultiInfrastructureJobSubmission.java &&\
-    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
-           src/main/java/it/infn/ct/GridEngine/Job/JSagaJobSubmission.java &&\
-    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
-           src/main/java/it/infn/ct/GridEngine/UsersTracking/UsersTrackingDBInterface.java &&\
+#    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+#           src/main/resources/hibernate.cfg.xml &&\
+#    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+#           src/main/java/it/infn/ct/GridEngine/JobCollection/JobCollectionSubmission.java &&\
+#    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+#           src/main/java/it/infn/ct/GridEngine/Job/MultiInfrastructureJobSubmission.java &&\
+#    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+#           src/main/java/it/infn/ct/GridEngine/Job/JSagaJobSubmission.java &&\
+#    sed -i "s/jdbc:mysql:\/\/localhost/jdbc:mysql:\/\/$FGDB_HOST/g"\
+#           src/main/java/it/infn/ct/GridEngine/UsersTracking/UsersTrackingDBInterface.java &&\
     cd -
 
 RUN cd grid-and-cloud-engine/grid-and-cloud-engine-threadpool &&\
@@ -163,9 +163,7 @@ RUN sudo chmod 644 $CATALINA_HOME/conf/server.xml &&\
     echo "                           username=\"$UTDB_USER\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           password=\"$UTDB_PASSWORD\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           driverClassName=\"com.mysql.jdbc.Driver\"" >> $CATALINA_HOME/conf/server.xml &&\
-    echo "                           description=\"UsersTrackingDB connection\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           url=\"jdbc:mysql://$UTDB_HOST:$UTDB_PORT/$UTDB_DATABASE\"" >> $CATALINA_HOME/conf/server.xml &&\
-    echo "                           maxAge=\"30000\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           testOnBorrow=\"true\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           testWhileIdle=\"true\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           validationInterval=\"0\"" >> $CATALINA_HOME/conf/server.xml &&\
@@ -179,9 +177,7 @@ RUN sudo chmod 644 $CATALINA_HOME/conf/server.xml &&\
     echo "                           username=\"$UTDB_USER\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           password=\"$UTDB_PASSWORD\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           driverClassName=\"com.mysql.jdbc.Driver\"" >> $CATALINA_HOME/conf/server.xml &&\
-    echo "                           description=\"UsersTrackingDB connection\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           url=\"jdbc:mysql://$UTDB_HOST:$UTDB_PORT/$UTDB_DATABASE\"" >> $CATALINA_HOME/conf/server.xml &&\
-    echo "                           maxAge=\"30000\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           testOnBorrow=\"true\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           testWhileIdle=\"true\"" >> $CATALINA_HOME/conf/server.xml &&\
     echo "                           validationInterval=\"0\"" >> $CATALINA_HOME/conf/server.xml &&\

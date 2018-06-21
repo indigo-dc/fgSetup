@@ -25,6 +25,11 @@ image: Dockerfile
                -t $(DOCKER_REPO)/$(IMAGE_NAME):latest .
 	docker tag $(DOCKER_REPO)/$(IMAGE_NAME):latest $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
 
+image_cached: Dockerfile
+	docker build\
+               -t $(DOCKER_REPO)/$(IMAGE_NAME):latest .
+	docker tag $(DOCKER_REPO)/$(IMAGE_NAME):latest $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
+
 publish: image 
 	docker push $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
 	docker push $(DOCKER_REPO)/$(IMAGE_NAME):latest
