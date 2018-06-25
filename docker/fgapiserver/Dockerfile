@@ -5,56 +5,56 @@ FROM tiangolo/uwsgi-nginx-flask:python2.7
 MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
 
 # Environment for fgAPIServer
-ENV FG_USER futuregateway
-ENV FG_DIR /home/futuregateway
-ENV FGAPISRV_APPSDIR /app/apps
-ENV FGAPISERVER_GIT https://github.com/FutureGatewayFramework/fgAPIServer.git 
-ENV FGAPISERVER_BRANCH master
+ENV FG_USER=futuregateway\
+ FG_DIR=/home/futuregateway\
+ FGAPISRV_APPSDIR=/app/apps\
+ FGAPISERVER_GIT=https://github.com/FutureGatewayFramework/fgAPIServer.git\
+ FGAPISERVER_BRANCH=master\
 # Environment for fgdb
-ENV MYSQL_ROOT_PASSWORD rpass
-ENV FGDB_HOST fgdb 
-ENV FGDB_PORT 3306
-ENV FGDB_USER fgapiserver
-ENV FGDB_PASSWD fgapiserver_password
-ENV FGDB_NAME fgapiserver
+ MYSQL_ROOT_PASSWORD=rpass\
+ FGDB_HOST=fgdb\
+ FGDB_PORT=3306\
+ FGDB_USER=fgapiserver\
+ FGDB_PASSWD=fgapiserver_password\
+ FGDB_NAME=fgapiserver\
 # Environment for ei_gridengine EI
-ENV UTDB_HOST $FGDB_HOST 
-ENV UTDB_PORT 3306
-ENV UTDB_USER tracking_user
-ENV UTDB_PASSWORD usertracking
-ENV UTDB DATABASE userstracking
+ UTDB_HOST=$FGDB_HOST\
+ UTDB_PORT=3306\
+ UTDB_USER=tracking_user\
+ UTDB_PASSWORD=usertracking\
+ UTDB_DATABASE=userstracking\
 # Environment for scripts
-ENV FGSETUP_GIT https://github.com/FutureGatewayFramework/fgSetup.git
-ENV FGSETUP_BRANCH master
+ FGSETUP_GIT=https://github.com/FutureGatewayFramework/fgSetup.git\
+ FGSETUP_BRANCH=master\
 # Environment for fgAPIServer configuration
-ENV FGAPIVER v1.0
-ENV FGAPISERVER_NAME API Server
-ENV FGAPISRV_HOST 0.0.0.0
-ENV FGAPISRV_PORT 8888
-ENV FGAPISRV_DEBUG True
-ENV FGAPISRV_IOSANDBOX /app/fgiosandbox
-ENV FGAPISRV_IOSANDBOX_ESC \\/app\\/fgiosandbox
-ENV FGAPISRV_GEAPPID 10000
-ENV FGJSON_INDENT 4
-ENV FGAPISRV_KEY ''
-ENV FGAPISRV_CRT ''
-ENV FGAPISRV_LOGCFG fgapiserver_log.conf
-ENV FGAPISRV_DBVER 0.0.11
-ENV FGAPISRV_SECRET 0123456789ABCDEF
-ENV FGAPISRV_NOTOKEN False 
-ENV FGAPISRV_NOTOKENUSR test
-ENV FGAPISRV_LNKPTVFLAG True
-ENV FGAPISRV_PTVENDPOINT http:\\/\\/localhost:8889\\/checktoken
-ENV FGAPISRV_PTVUSER tokenver_user
-ENV FGAPISRV_PTVPASS tokenver_pass
-ENV FGAPISRV_PTVDEFUSR futuregateway
-ENV FGAPISRV_PTVDEFGRP administrator
-ENV FGAPISRV_PTVMAPFILE fgapiserver_ptvmap.json
-ENV FGAPISRV_DB_HOST $FGDB_HOST
-ENV FGAPISRV_DB_PORT $FGDB_PORT 
-ENV FGAPISRV_DB_USER $FGDB_USER
-ENV FGAPISRV_DB_PASS $FGDB_PASSWD 
-ENV FGAPISRV_DB_NAME $FGDB_NAME
+ FGAPIVER=v1.0\
+ FGAPISERVER_NAME='API Server'\
+ FGAPISRV_HOST=0.0.0.0\
+ FGAPISRV_PORT=8888\
+ FGAPISRV_DEBUG=True\
+ FGAPISRV_IOSANDBOX=/app/fgiosandbox\
+ FGAPISRV_IOSANDBOX_ESC=\\/app\\/fgiosandbox\
+ FGAPISRV_GEAPPID=10000\
+ FGJSON_INDENT=4\
+ FGAPISRV_KEY=''\
+ FGAPISRV_CRT=''\
+ FGAPISRV_LOGCFG=fgapiserver_log.conf\
+ FGAPISRV_DBVER=0.0.11\
+ FGAPISRV_SECRET=0123456789ABCDEF\
+ FGAPISRV_NOTOKEN=False\
+ FGAPISRV_NOTOKENUSR=test\
+ FGAPISRV_LNKPTVFLAG=True\
+ FGAPISRV_PTVENDPOINT=http:\\/\\/localhost:8889\\/checktoken\
+ FGAPISRV_PTVUSER=tokenver_user\
+ FGAPISRV_PTVPASS=tokenver_pass\
+ FGAPISRV_PTVDEFUSR=futuregateway\
+ FGAPISRV_PTVDEFGRP=administrator\
+ FGAPISRV_PTVMAPFILE=fgapiserver_ptvmap.json\
+ FGAPISRV_DB_HOST=$FGDB_HOST\
+ FGAPISRV_DB_PORT=$FGDB_PORT\
+ FGAPISRV_DB_USER=$FGDB_USER\
+ FGAPISRV_DB_PASS=$FGDB_PASSWD\ 
+ FGAPISRV_DB_NAME=$FGDB_NAME
 
 # User and working directory
 WORKDIR $FG_DIR
@@ -63,8 +63,14 @@ WORKDIR $FG_DIR
 RUN adduser --disabled-password --gecos "" $FG_USER &&\
     chown -R $FG_USER:$FG_USERS $FG_DIR &&\
     apt-get update &&\
-    apt-get install -y --no-install-recommends ca-certificates\
-    mysql-client sudo git mlocate vim &&\
+    apt-get install -y --no-install-recommends\
+    ca-certificates\
+    mysql-client\
+    sudo\
+    git\
+    mlocate\
+    vim\
+    jq &&\
     sudo echo "$FG_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/*

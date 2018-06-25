@@ -6,27 +6,27 @@ FROM mysql:5
 MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
 
 # Environment for FGDB
-ENV FG_USER futuregateway
-ENV FG_DIR /home/futuregateway
-ENV MYSQL_ROOT_PASSWORD rpass
-ENV FGDB_HOST fgdb 
-ENV FGDB_PORT 3306
-ENV FGDB_USER fgapiserver
-ENV FGDB_PASSWD fgapiserver_password
-ENV FGDB_NAME fgapiserver
-ENV FGDB_GIT https://github.com/FutureGatewayFramework/fgAPIServer.git
-ENV FGDB_BRANCH master
+ENV FG_USER=futuregateway\
+    FG_DIR=/home/futuregateway\
+    MYSQL_ROOT_PASSWORD=rpass\
+    FGDB_HOST=fgdb\
+    FGDB_PORT=3306\
+    FGDB_USER=fgapiserver\
+    FGDB_PASSWD=fgapiserver_password\
+    FGDB_NAME=fgapiserver\
+    FGDB_GIT=https://github.com/FutureGatewayFramework/fgAPIServer.git\
+    FGDB_BRANCH=master\
 # Environment for scripts
-ENV FGSETUP_GIT https://github.com/FutureGatewayFramework/fgSetup.git
-ENV FGSETUP_BRANCH master
+    FGSETUP_GIT=https://github.com/FutureGatewayFramework/fgSetup.git\
+    FGSETUP_BRANCH=master\
 # Environment for GridEngine EI
-ENV UTDB_HOST $FGDB_HOST 
-ENV UTDB_PORT 3306
-ENV UTDB_USER tracking_user
-ENV UTDB_PASSWORD usertracking
-ENV UTDB DATABASE userstracking
-ENV GNCENG https://github.com/csgf/grid-and-cloud-engine.git
-ENV GNCENG_BRANCH FutureGateway
+    UTDB_HOST=$FGDB_HOST\
+    UTDB_PORT=3306\
+    UTDB_USER=tracking_user\
+    UTDB_PASSWORD=usertracking\
+    UTDB_DATABASE=userstracking\
+    GNCENG=https://github.com/csgf/grid-and-cloud-engine.git\
+    GNCENG_BRANCH=FutureGateway
 
 # User and working directory
 WORKDIR $FG_DIR

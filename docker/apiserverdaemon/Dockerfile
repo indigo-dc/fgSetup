@@ -5,38 +5,39 @@ FROM tomcat:7
 MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
 
 # Environment
-ENV FG_USER futuregateway
-ENV FG_DIR /home/futuregateway
-ENV MYSQL_HOST fgdb
-ENV MYSQL_PORT 3306
-ENV MYSQL_USER fgapiserver
-ENV MYSQL_PASSWORD fgapiserver_password
-ENV MYSQL_DATABASE fgapiserver
-ENV FGDB_GIT https://github.com/FutureGatewayFramework/APIServerDaemon.git
-ENV FGDB_BRANCH master 
-ENV TOMCAT_USER tomcat
-ENV TOMCAT_PASSWORD tomcat__pass
-ENV FGAPISRV_IOSANDBOX /app/fgiosandbox
+ENV FG_USER=futuregateway\
+    FG_DIR=/home/futuregateway\
+    MYSQL_HOST=fgdb\
+    MYSQL_PORT=3306\
+    MYSQL_USER=fgapiserver\
+    MYSQL_PASSWORD=fgapiserver_password\
+    MYSQL_DATABASE=fgapiserver\
+    FGDB_GIT=https://github.com/FutureGatewayFramework/APIServerDaemon.git\
+    FGDB_BRANCH=master\
+    TOMCAT_USER=tomcat\
+    TOMCAT_PASSWORD=tomcat__pass\
+    FGAPISRV_IOSANDBOX=/app/fgiosandbox\
 # Environment for scripts
-ENV FGSETUP_GIT https://github.com/FutureGatewayFramework/fgSetup.git
-ENV FGSETUP_BRANCH master
+    FGSETUP_GIT=https://github.com/FutureGatewayFramework/fgSetup.git\
+    FGSETUP_BRANCH=master\
 # Environment for fgdb
-ENV MYSQL_ROOT_PASSWORD rpass
-ENV FGDB_HOST fgdb 
-ENV FGDB_PORT 3306
-ENV FGDB_USER fgapiserver
-ENV FGDB_PASSWD fgapiserver_password
-ENV FGDB_NAME fgapiserver
+    MYSQL_ROOT_PASSWORD=rpass\
+    FGDB_HOST=fgdb\
+    FGDB_PORT=3306\
+    FGDB_USER=fgapiserver\
+    FGDB_PASSWD=fgapiserver_password\
+    FGDB_NAME=fgapiserver\
 # Executor Interfaces environment
-ENV UTDB_HOST fgdb
-ENV UTDB_PORT 3306
-ENV UTDB_USER tracking_user
-ENV UTDB_PASSWORD usertracking
-ENV UTDB_DATABASE userstracking
-ENV GNCENG_ADP_ROCCI https://github.com/csgf/jsaga-adaptor-rocci.git
-ENV GNCENG_ADP_ROCCI_BRANCH master
-ENV GNCENG https://github.com/csgf/grid-and-cloud-engine.git
-ENV GNCENG_BRANCH FutureGateway
+    UTDB_HOST=fgdb\
+    UTDB_PORT=3306\
+    UTDB_USER=tracking_user\
+    UTDB_PASSWORD=usertracking\
+    UTDB_DATABASE=userstracking\
+    GNCENG_ADP_ROCCI=https://github.com/csgf/jsaga-adaptor-rocci.git\
+    GNCENG_ADP_ROCCI_BRANCH=master\
+    GNCENG=https://github.com/csgf/grid-and-cloud-engine.git\
+    GNCENG_BRANCH=FutureGateway\
+    PTV_HSTPRT=fgapiserver:8889
 
 # FG User creation and packages installation
 RUN adduser --disabled-password --gecos "" $FG_USER &&\
@@ -98,9 +99,9 @@ RUN git clone $FGDB_GIT -b $FGDB_BRANCH &&\
         APIServerDaemon/web/WEB-INF/classes/it/infn/ct/GridEngineDaemon.properties &&\
     sed -i "s/utdb_host\ =\ localhost/utdb_host\ =\ $FGDB_HOST/"\
          APIServerDaemon/web/WEB-INF/classes/it/infn/ct/GridEngineDaemon.properties &&\
-    sed -i "s/localhost:8888/fgapiserver/"\
+    sed -i "s/localhost:8888/$PTV_HSTPRT/"\
         APIServerDaemon/web/WEB-INF/classes/it/infn/ct/ToscaIDC.properties &&\
-    sed -i "s/localhost:8889\\/get-token/fgapiserver:8889\\/get-token/"\
+    sed -i "s/localhost:8889\\/get-token/$PTV_HSTPRT\\/get-token/"\
          APIServerDaemon/web/WEB-INF/classes/it/infn/ct/ToscaIDC.properties &&\
 	 sed -i "s/localhost:/$FGDB_HOST:/"\
            APIServerDaemon/web/META-INF/context.xml &&\
@@ -221,7 +222,7 @@ RUN cd APIServerDaemon && mkdir -p web/WEB-INF/lib && ant all
 # nginx port 80 available to the world outside this container
 EXPOSE 8080
 
-# Back to the root user
+# Back to the root user, load the environment and place  APIServerDaemon webapp
 USER root 
 RUN cp /home/$FG_USER/APIServerDaemon/dist/APIServerDaemon.war $CATALINA_HOME/webapps/
 

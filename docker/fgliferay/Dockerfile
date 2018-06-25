@@ -1,34 +1,34 @@
 # OS
-FROM httpd 
+FROM mdelapenya/liferay-portal:7-ce-ga5-tomcat-mysql 
 
 # Maintainer
 MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
 
 # Environment for FGDB
 ENV FG_USER=futuregateway\
- FG_USERPWD=futuregateway\
- FG_DIR=/home/futuregateway\
- FG_TEST=fgtest\
- FG_TESTPWD=fgtest\
- FG_TESTDIR=/home/fgtest\
- FGDB_HOST=fgdb\
- FGDB_PORT=3306\
- FGDB_USER=fgapiserver\
- FGDB_PASSWD=fgapiserver_password\
- FGDB_NAME=fgapiserver\
+    FG_USERPWD=futuregateway\
+    FG_DIR=/home/futuregateway\
+    FG_TEST=fgtest\
+    FG_TESTPWD=fgtest\
+    FG_TESTDIR=/home/fgtest\
+    FGDB_HOST=fgdb\
+    FGDB_PORT=3306\
+    FGDB_USER=fgapiserver\
+    FGDB_PASSWD=fgapiserver_password\
+    FGDB_NAME=fgapiserver\
 # Environment for scripts
- FGSETUP_GIT=https://github.com/FutureGatewayFramework/fgSetup.git\
- FGSETUP_BRANCH=master\
+    FGSETUP_GIT=https://github.com/FutureGatewayFramework/fgSetup.git\
+    FGSETUP_BRANCH=master\
 # Environment for GridEngine EI
- UTDB_HOST=$FGDB_HOST\
- UTDB_PORT=3306\
- UTDB_USER=tracking_user\
- UTDB_PASSWORD=usertracking\
- UTDB_DATABASE=userstracking
+    UTDB_HOST=$FGDB_HOST\ 
+    UTDB_PORT=3306\
+    UTDB_USER=tracking_user\
+    UTDB_PASSWORD=usertracking\
+    UTDB_DATABASE=userstracking
 
 # SSL/HTTPS Certificates
-ADD server.crt /usr/local/apache2/conf
-ADD server.key /usr/local/apache2/conf
+#ADD server.crt /usr/local/apache2/conf
+#ADD server.key /usr/local/apache2/conf
 
 # Package Installation
 RUN adduser --disabled-password --gecos "" $FG_USER &&\
@@ -51,11 +51,6 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* &&\
     locale-gen en_US.UTF-8 &&\
-    sed -i 's/#LoadModule\ ssl_module\ modules\/mod_ssl.so/LoadModule\ ssl_module\ modules\/mod_ssl.so/'\
-           /usr/local/apache2/conf/httpd.conf &&\
-    sed -i 's/#LoadModule\ socache_shmcb_module\ modules\/mod_socache_shmcb.so/LoadModule\ socache_shmcb_module\ modules\/mod_socache_shmcb.so/' /usr/local/apache2/conf/httpd.conf &&\
-    sed -i 's/#Include\ conf\/extra\/httpd-ssl.conf/Include\ conf\/extra\/httpd-ssl.conf/'\
-           /usr/local/apache2/conf/httpd.conf &&\
     echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh
 
 # User and working directory
@@ -92,7 +87,7 @@ RUN sed -i "s/.*UTDB_HOST.*/export UTDB_HOST=$UTDB_HOST/" .fgprofile/ei_gridengi
 EXPOSE 80
 EXPOSE 443
 
-# Prepare and execute sshd
+# Prepare for final execution 
 USER root
-WORKDIR /root
+WORKDIR $FG_DIR
 

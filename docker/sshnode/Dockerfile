@@ -5,26 +5,26 @@ FROM ubuntu
 MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
 
 # Environment for FGDB
-ENV FG_USER futuregateway
-ENV FG_USERPWD futuregateway
-ENV FG_DIR /home/futuregateway
-ENV FG_TEST fgtest
-ENV FG_TESTPWD fgtest
-ENV FG_TESTDIR /home/fgtest
-ENV FGDB_HOST fgdb 
-ENV FGDB_PORT 3306
-ENV FGDB_USER fgapiserver
-ENV FGDB_PASSWD fgapiserver_password
-ENV FGDB_NAME fgapiserver
+ENV FG_USER=futuregateway\
+    FG_USERPWD=futuregateway\
+    FG_DIR=/home/futuregateway\
+    FG_TEST=fgtest\
+    FG_TESTPWD=fgtest\
+    FG_TESTDIR=/home/fgtest\
+    FGDB_HOST=fgdb\
+    FGDB_PORT=3306\
+    FGDB_USER=fgapiserver\
+    FGDB_PASSWD=fgapiserver_password\
+    FGDB_NAME=fgapiserver\
 # Environment for scripts
-ENV FGSETUP_GIT https://github.com/FutureGatewayFramework/fgSetup.git
-ENV FGSETUP_BRANCH master
+    FGSETUP_GIT=https://github.com/FutureGatewayFramework/fgSetup.git\
+    FGSETUP_BRANCH=master\
 # Environment for GridEngine EI
-ENV UTDB_HOST $FGDB_HOST 
-ENV UTDB_PORT 3306
-ENV UTDB_USER tracking_user
-ENV UTDB_PASSWORD usertracking
-ENV UTDB DATABASE userstracking
+    UTDB_HOST=$FGDB_HOST\ 
+    UTDB_PORT=3306\
+    UTDB_USER=tracking_user\
+    UTDB_PASSWORD=usertracking\
+    UTDB_DATABASE=userstracking
 
 # Package Installation and TeSS cloning
 RUN adduser --disabled-password --gecos "" $FG_USER &&\
