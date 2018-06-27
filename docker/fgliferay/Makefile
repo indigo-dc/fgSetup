@@ -1,7 +1,21 @@
+#
+# fgliferay Docker container makefile
+#
+# Please ensure that Makefile environment variables are matching
+# values defined inside Dockerfile
+#
+# Author: Riccardo Bruno (INFN) <riccardo.bruno@ct.infn.it>
+#
 DOCKER_REPO = futuregateway
 IMAGE_NAME = fgliferay
 IMAGE_TAG = 0.1
 FG_NETWORK = fgnetwork
+FG_LIFERAYVOLNAME = fg_liferay
+LFRY_DBNAME = lportal
+LFRY_DBUSER = lportal
+LFRY_DBPASS = lportal
+LPORTAL_SQL = lportal.sql
+MYSQL_ROOT_PASSWORD = rpass
 
 default:
 	@echo "Usage: make <image|pubimg>"
@@ -26,9 +40,14 @@ network:
                 && docker network create $(FG_NETWORK)\
                 || echo "Network $(FG_NETWORK) already running"
 
+volumes:
+	@FGLFRYVOL=`docker volume inspect $(FG_LIFERAYVOLNAME) 2>/dev/null | jq '.[].Mountpoint' | xargs echo` &&\
+        [ -z "$$FGLFRYVOL" ] &&\
+                docker volume create $(FG_LIFERAYVOLNAME) ||\
+                echo "FG liferay volume exists at: $$FGLFRYVOL"
 
-run: network
-	FGDB_IP=`docker network inspect fgnetwork|\
+run: network volumes
+	@FGDB_IP=`docker network inspect fgnetwork|\
 		jq '.[].Containers[]|select(.Name|contains("fgdb"))|.IPv4Address'|\
 		xargs echo| sed 's/\// /' | awk '{ print $$1 }'` &&\
 	FGAPISRV_IP=`docker network inspect fgnetwork|\
@@ -36,12 +55,18 @@ run: network
                 xargs echo| sed 's/\// /' | awk '{ print $$1 }'` &&\
         [ "$$FGDB_IP" != "" -a "$$FGAPISRV_IP" != "" ] &&\
         echo "fgdb IP: $$FGDB_IP" &&\
+	cp $(LPORTAL_SQL) run_$(LPORTAL_SQL) &&\
+        sed -i "s/LFRY_DBNAME/$(LFRY_DBNAME)/g" run_$(LPORTAL_SQL) &&\
+	sed -i "s/LFRY_DBUSER/$(LFRY_DBNAME)/g" run_$(LPORTAL_SQL) &&\
+	sed -i "s/LFRY_DBPASS/$(LFRY_DBNAME)/g" run_$(LPORTAL_SQL) &&\
+	mysql -u root -prpass -h $$FGDB_IP < run_$(LPORTAL_SQL) &&\
+	rm -f run_$(LPORTAL_SQL) &&\
         docker run -d\
 	    -e FGDB_HOST=$(FG_RUN_NET)\
             --net $(FG_NETWORK)\
             --name $(IMAGE_NAME)_$(IMAGE_TAG)\
-            -p80:80\
-	    -p443:443\
+            -p18080:8080\
+	    -v $(FG_LIFERAYVOLNAME):/opt/liferay/home/data\
 	    --add-host "fgdb:$$FGDB_IP"\
 	    --add-host "fgapiserver:$$FGAPISRV_IP"\
 	    -h $(IMAGE_NAME)\

@@ -65,7 +65,7 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
     chown -R root:futuregateway $FGAPISRV_IOSANDBOX &&\ 
     chown -R root:futuregateway $CATALINA_HOME &&\
     chmod -R g+r+w $CATALINA_HOME &&\
-    echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh
+    echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fg_profile.sh
 
 # Setup Tomcat mgr user and roles
 RUN mv $CATALINA_HOME/conf/tomcat-users.xml $CATALINA_HOME/conf/tomcat-users.xml_orig &&\

@@ -1,11 +1,16 @@
 # OS
-FROM mdelapenya/liferay-portal:7-ce-ga5-tomcat-mysql 
+FROM esystemstech/liferay:7.0.5-ga6 
 
 # Maintainer
 MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
 
+# Configure liferay container
+ENV DB_HOST=fgdb\
+    DB_SCHEMA=lportal\
+    DB_USER=lportal\
+    DB_PASSWORD=lportal\
 # Environment for FGDB
-ENV FG_USER=futuregateway\
+    FG_USER=futuregateway\
     FG_USERPWD=futuregateway\
     FG_DIR=/home/futuregateway\
     FG_TEST=fgtest\
@@ -26,10 +31,6 @@ ENV FG_USER=futuregateway\
     UTDB_PASSWORD=usertracking\
     UTDB_DATABASE=userstracking
 
-# SSL/HTTPS Certificates
-#ADD server.crt /usr/local/apache2/conf
-#ADD server.key /usr/local/apache2/conf
-
 # Package Installation
 RUN adduser --disabled-password --gecos "" $FG_USER &&\
     chown -R $FG_USER:$FG_USERS $FG_DIR &&\
@@ -46,12 +47,13 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
             mysql-client\
             mlocate\
             vim\
-            locales &&\
+            locales\
+            jq &&\
    #sudo echo "$FG_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* &&\
     locale-gen en_US.UTF-8 &&\
-    echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh
+    echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fg_profile.sh
 
 # User and working directory
 USER $FG_USER
@@ -84,8 +86,8 @@ RUN sed -i "s/.*UTDB_HOST.*/export UTDB_HOST=$UTDB_HOST/" .fgprofile/ei_gridengi
 #    sed -i "s/.*UTDB_NAME.*/export UTDB_NAME=$UTDB_NAME/" .fgprofile/ei_gridengine &&\
     sed -i "s/.*UTDB_OPTS.*/export UTDB_OPTS=''/" .fgprofile/ei_gridengine
 
-EXPOSE 80
-EXPOSE 443
+# Expose liferay 8080 and 11311 ports
+EXPOSE 8080
 
 # Prepare for final execution 
 USER root

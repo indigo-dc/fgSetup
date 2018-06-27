@@ -107,5 +107,5 @@ RUN cat $FG_DIR/fgAPIServer/fgapiserver_db.sql > /docker-entrypoint-initdb.d/dbs
 EXPOSE $FGDB_PORT 
 
 # Setup FGDB profile (all users)
-RUN echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh &&\
+RUN echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fg_profile.sh &&\
     echo "127.0.0.1 $FGDB_HOST" >> /etc/hosts

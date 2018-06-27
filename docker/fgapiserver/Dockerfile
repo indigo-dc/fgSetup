@@ -168,4 +168,4 @@ RUN echo "./fgapiserver_ptv.py 2>fgapiserver.log >fgapiserver.log &" > prestart.
 
 
 # Setup FGDB profile (all users)
-RUN echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh 
+RUN echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fg_profile.sh 

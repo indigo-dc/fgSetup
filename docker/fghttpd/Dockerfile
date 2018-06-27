@@ -56,7 +56,7 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
     sed -i 's/#LoadModule\ socache_shmcb_module\ modules\/mod_socache_shmcb.so/LoadModule\ socache_shmcb_module\ modules\/mod_socache_shmcb.so/' /usr/local/apache2/conf/httpd.conf &&\
     sed -i 's/#Include\ conf\/extra\/httpd-ssl.conf/Include\ conf\/extra\/httpd-ssl.conf/'\
            /usr/local/apache2/conf/httpd.conf &&\
-    echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh
+    echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fg_profile.sh
 
 # User and working directory
 USER $FG_USER

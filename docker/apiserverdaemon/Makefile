@@ -1,3 +1,11 @@
+#
+# apiserverdaemon Docker container makefile
+#
+# Please ensure that Makefile environment variables are matching
+# values defined inside Dockerfile
+# 
+# Author: Riccardo Bruno (INFN) <riccardo.bruno@ct.infn.it>
+#
 DOCKER_REPO = futuregateway
 IMAGE_NAME = apiserverdaemon
 IMAGE_TAG = 0.1

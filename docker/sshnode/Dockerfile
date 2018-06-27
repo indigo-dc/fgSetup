@@ -50,7 +50,7 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
     rm -rf /var/lib/apt/lists/* &&\
     locale-gen en_US.UTF-8 &&\
     sed -i "s/.*PasswordAuthentication.*/PasswordAuthentication yes/g" /etc/ssh/sshd_config &&\
-    echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fgdb.sh
+    echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fg_profile.sh
 
 # User and working directory
 USER $FG_USER
