@@ -22,6 +22,8 @@ default:
 	@echo "     image - Build the image: $(DOCKER_REPO)/$(IMAGE_NAME):latest"
 	@echo "       run - Create container from image : $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)"
 	@echo "             having name: $(IMAGE_NAME)_$(IMAGE_TAG)" 
+	@echo "     rerun - Same as above, to be used in case the container has been already started"
+	@echo "             and recycle both volumes and database."
 	@echo "   publish - Publish images: $(DOCKER_REPO)/$(IMAGE_NAME):latest"
 	@echo "                             $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE:_TAG)"
 	@echo "             on the Docker-hub"
@@ -55,6 +57,7 @@ run: network volumes
                 xargs echo| sed 's/\// /' | awk '{ print $$1 }'` &&\
         [ "$$FGDB_IP" != "" -a "$$FGAPISRV_IP" != "" ] &&\
         echo "fgdb IP: $$FGDB_IP" &&\
+	echo "fgapiserver IP: $$FGAPISRV_IP" &&\
 	cp $(LPORTAL_SQL) run_$(LPORTAL_SQL) &&\
         sed -i "s/LFRY_DBNAME/$(LFRY_DBNAME)/g" run_$(LPORTAL_SQL) &&\
 	sed -i "s/LFRY_DBUSER/$(LFRY_DBNAME)/g" run_$(LPORTAL_SQL) &&\
@@ -71,4 +74,26 @@ run: network volumes
 	    --add-host "fgapiserver:$$FGAPISRV_IP"\
 	    -h $(IMAGE_NAME)\
 	    $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
+        echo "Sorry, one of the nodes FGDB ($$FGDB_IP) or FGAPISRV ($$FGAPISRV_IP) is not running!"
+
+rerun: network volumes
+	@FGDB_IP=`docker network inspect fgnetwork|\
+                jq '.[].Containers[]|select(.Name|contains("fgdb"))|.IPv4Address'|\
+                xargs echo| sed 's/\// /' | awk '{ print $$1 }'` &&\
+        FGAPISRV_IP=`docker network inspect fgnetwork|\
+                jq '.[].Containers[]|select(.Name|contains("fgapiserver"))|.IPv4Address'|\
+                xargs echo| sed 's/\// /' | awk '{ print $$1 }'` &&\
+        [ "$$FGDB_IP" != "" -a "$$FGAPISRV_IP" != "" ] &&\
+        echo "fgdb IP: $$FGDB_IP" &&\
+        echo "fgapiserver IP: $$FGAPISRV_IP" &&\
+        docker run -d\
+            -e FGDB_HOST=$(FG_RUN_NET)\
+            --net $(FG_NETWORK)\
+            --name $(IMAGE_NAME)_$(IMAGE_TAG)\
+            -p18080:8080\
+            -v $(FG_LIFERAYVOLNAME):/opt/liferay/home/data\
+            --add-host "fgdb:$$FGDB_IP"\
+            --add-host "fgapiserver:$$FGAPISRV_IP"\
+            -h $(IMAGE_NAME)\
+            $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) ||\
         echo "Sorry, one of the nodes FGDB ($$FGDB_IP) or FGAPISRV ($$FGAPISRV_IP) is not running!"
