@@ -24,7 +24,11 @@ ENV FG_USER=futuregateway\
  UTDB_PORT=3306\
  UTDB_USER=tracking_user\
  UTDB_PASSWORD=usertracking\
- UTDB_DATABASE=userstracking
+ UTDB_DATABASE=userstracking\
+# Environment for Liferay portal
+ FG_PORTALEP=science_gateway
+ FG_LIFERAY=http://fgliferay:8080/\
+
 
 # SSL/HTTPS Certificates
 ADD server.crt /usr/local/apache2/conf
@@ -56,6 +60,18 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
     sed -i 's/#LoadModule\ socache_shmcb_module\ modules\/mod_socache_shmcb.so/LoadModule\ socache_shmcb_module\ modules\/mod_socache_shmcb.so/' /usr/local/apache2/conf/httpd.conf &&\
     sed -i 's/#Include\ conf\/extra\/httpd-ssl.conf/Include\ conf\/extra\/httpd-ssl.conf/'\
            /usr/local/apache2/conf/httpd.conf &&\
+    sed -i 's/#LoadModule\ proxy_module\ modules\/mod_proxy.so/LoadModule\ proxy_module\ modules\/mod_proxy.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+    sed -i 's/#LoadModule\ proxy_balancer_module\ modules\/mod_proxy_balancer.so/LoadModule\ proxy_balancer_module\ modules\/mod_proxy_balancer.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+    sed -i 's/#LoadModule\ proxy_hcheck_module\ modules\/mod_proxy_hcheck.so/LoadModule\ proxy_hcheck_module\ modules\/mod_proxy_hcheck.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+     sed -i 's/#LoadModule\ slotmem_shm_module\ modules\/mod_slotmem_shm.so/LoadModule\ slotmem_shm_module\ modules\/mod_slotmem_shm.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+     sed -i 's/#LoadModule\ watchdog_module\ modules\/mod_watchdog.so/LoadModule\ watchdog_module\ modules\/mod_watchdog.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+           echo "ProxyPass \"/$FG_PORTALEP\"  \"$FG_LIFERAY\"" >> /usr/local/apache2/conf/extra/proxy-html.conf &&\
+           echo "ProxyPassReverse \"/$FG_PORTALEP\"  \"$FG_LIFERAY\"" >> /usr/local/apache2/conf/extra/proxy-html.conf &&\
     echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fg_profile.sh
 
 # User and working directory
