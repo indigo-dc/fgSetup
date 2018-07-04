@@ -1,5 +1,7 @@
 drop database if exists LFRY_DBNAME;
-create database LFRY_DBNAME;
+DROP USER IF EXISTS 'LFRY_DBUSER'@'%';
+DROP USER IF EXISTS 'LFRY_DBUSER'@'localhost';
+create database LFRY_DBNAME CHARACTER SET utf8 COLLATE utf8_general_ci;
 create user 'LFRY_DBUSER'@'%';
 alter user 'LFRY_DBUSER'@'%' identified by "LFRY_DBPASS";
 grant all privileges

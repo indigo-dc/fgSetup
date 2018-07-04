@@ -26,8 +26,8 @@ ENV FG_USER=futuregateway\
  UTDB_PASSWORD=usertracking\
  UTDB_DATABASE=userstracking\
 # Environment for Liferay portal
- FG_PORTALEP=science_gateway
- FG_LIFERAY=http://fgliferay:8080/\
+ FG_LIFERAY_PROXYPATH=/liferay\
+ FG_LIFERAY_PROXY=ajp://fgliferay:8009
 
 
 # SSL/HTTPS Certificates
@@ -51,7 +51,7 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
             mlocate\
             vim\
             locales &&\
-   #sudo echo "$FG_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&\
+    #sudo echo "$FG_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* &&\
     locale-gen en_US.UTF-8 &&\
@@ -66,12 +66,25 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
            /usr/local/apache2/conf/httpd.conf &&\
     sed -i 's/#LoadModule\ proxy_hcheck_module\ modules\/mod_proxy_hcheck.so/LoadModule\ proxy_hcheck_module\ modules\/mod_proxy_hcheck.so/'\
            /usr/local/apache2/conf/httpd.conf &&\
-     sed -i 's/#LoadModule\ slotmem_shm_module\ modules\/mod_slotmem_shm.so/LoadModule\ slotmem_shm_module\ modules\/mod_slotmem_shm.so/'\
+    sed -i 's/#LoadModule\ slotmem_shm_module\ modules\/mod_slotmem_shm.so/LoadModule\ slotmem_shm_module\ modules\/mod_slotmem_shm.so/'\
            /usr/local/apache2/conf/httpd.conf &&\
-     sed -i 's/#LoadModule\ watchdog_module\ modules\/mod_watchdog.so/LoadModule\ watchdog_module\ modules\/mod_watchdog.so/'\
+    sed -i 's/#LoadModule\ watchdog_module\ modules\/mod_watchdog.so/LoadModule\ watchdog_module\ modules\/mod_watchdog.so/'\
            /usr/local/apache2/conf/httpd.conf &&\
-           echo "ProxyPass \"/$FG_PORTALEP\"  \"$FG_LIFERAY\"" >> /usr/local/apache2/conf/extra/proxy-html.conf &&\
-           echo "ProxyPassReverse \"/$FG_PORTALEP\"  \"$FG_LIFERAY\"" >> /usr/local/apache2/conf/extra/proxy-html.conf &&\
+    sed -i 's/#LoadModule\ proxy_http_module\ modules\/mod_proxy_http.so/LoadModule\ proxy_http_module\ modules\/mod_proxy_http.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+    sed -i 's/#LoadModule\ proxy_html_module\ modules\/mod_proxy_html.so/LoadModule\ proxy_html_module\ modules\/mod_proxy_html.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+    sed -i 's/#LoadModule\ xml2enc_module\ modules\/mod_xml2enc.so/LoadModule\ xml2enc_module modules\/mod_xml2enc.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+    sed -i 's/#LoadModule\ proxy_ajp_module\ modules\/mod_proxy_ajp.so/LoadModule\ proxy_ajp_module\ modules\/mod_proxy_ajp.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+    sed -i 's/#LoadModule\ rewrite_module\ modules\/mod_rewrite.so/LoadModule\ rewrite_module\ modules\/mod_rewrite.so/'\
+           /usr/local/apache2/conf/httpd.conf &&\
+    echo "ServerName fgsg.ct.infn.it" >> /usr/local/apache2/conf/extra/proxy-html.conf &&\
+    echo "ProxyPreserveHost on" >> /usr/local/apache2/conf/extra/proxy-html.conf &&\
+    echo "ProxyRequests off" >> /usr/local/apache2/conf/extra/proxy-html.conf &&\
+    echo "ProxyPass \"$FG_LIFERAY_PROXYPATH\"  \"$FG_LIFERAY_PROXY\"" >> /usr/local/apache2/conf/extra/proxy-html.conf &&\
+    echo "ProxyPassReverse \"$FG_LIFERAY_PROXYPATH\"  \"$FG_LIFERAY_PROXY\"" >> /usr/local/apache2/conf/extra/proxy-html.conf &&\
     echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fg_profile.sh
 
 # User and working directory

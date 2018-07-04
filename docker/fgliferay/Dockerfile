@@ -29,7 +29,14 @@ ENV DB_HOST=fgdb\
     UTDB_PORT=3306\
     UTDB_USER=tracking_user\
     UTDB_PASSWORD=usertracking\
-    UTDB_DATABASE=userstracking
+    UTDB_DATABASE=userstracking\
+# JAVA settings
+    JAVA_OPTS="$JAVA_OPTS -XX:NewSize=700m -XX:MaxNewSize=700m -Xms2048m \
+-Xmx2048m -XX:MaxPermSize=128m -XX:+UseParNewGC -XX:+UseConcMarkSweepGC \
+-XX:+CMSParallelRemarkEnabled -XX:SurvivorRatio=20 \
+-XX:ParallelGCThreads=8"\
+# Liferay settings
+    FG_LIFERAY_PROXYPATH="/liferay"
 
 # Package Installation
 RUN adduser --disabled-password --gecos "" $FG_USER &&\
@@ -53,6 +60,8 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* &&\
     locale-gen en_US.UTF-8 &&\
+    echo "portal.proxy.path=$FG_LIFERAY_PROXYPATH" >> /opt/liferay/etc/portal.properties &&\
+    sed -i 's/<Service\ name=\"Catalina\">/<Service\ name=\"Catalina\">\n<Connector\ URIEncoding=\"UTF-8\"\ enableLookups=\"false\"\ port=\"8009\"\ protocol=\"AJP\/1.3\"\ redirectPort=\"8443\"\/>/' /etc/tomcat8/server.xml &&\
     echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fg_profile.sh
 
 # User and working directory
