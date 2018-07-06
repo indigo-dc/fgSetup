@@ -6,12 +6,14 @@ MAINTAINER Riccardo Bruno <riccardo.bruno@ct.infn.it>
 
 # Configure liferay container
 ENV DB_HOST=fgdb\
+    DB_PORT=3306\
     DB_SCHEMA=lportal\
     DB_USER=lportal\
     DB_PASSWORD=lportal\
 # Environment for FGDB
     FG_USER=futuregateway\
     FG_USERPWD=futuregateway\
+    MYSQL_ROOT_PASSWORD=rpass\
     FG_DIR=/home/futuregateway\
     FG_TEST=fgtest\
     FG_TESTPWD=fgtest\
@@ -84,7 +86,8 @@ RUN git clone $FGSETUP_GIT -b $FGSETUP_BRANCH &&\
     cp fgSetup/scripts/ei_gridengine .fgprofile/ei_gridengine &&\
     cp fgSetup/scripts/fgliferay .fgprofile/fgliferay &&\
 # Configure scripts fgdb
-    sed -i "s/.*FGLOCATION.*/export FGLOCATION=\$(pwd)/" .fgprofile/fgdb &&\
+    ESC_FG_DIR=$(echo $FG_DIR | sed 's/\//\\\//g') &&\
+    sed -i "s/^export FGLOCATION.*/export FGLOCATION=$ESC_FG_DIR/" .fgprofile/fgdb &&\
     sed -i "s/.*FGDB_HOST.*/export FGDB_HOST=$FGDB_HOST/" .fgprofile/fgdb &&\
     sed -i "s/.*FGDB_PORT.*/export FGDB_PORT=$FGDB_PORT/" .fgprofile/fgdb &&\
     sed -i "s/.*FGDB_USER.*/export FGDB_USER=$FGDB_USER/" .fgprofile/fgdb &&\
@@ -93,14 +96,15 @@ RUN git clone $FGSETUP_GIT -b $FGSETUP_BRANCH &&\
     sed -i "s/.*ASDB_OPTS.*/export ASDB_OPTS=''/" .fgprofile/fgdb &&\
     sed -i "s/.*FGDB_ROOTPWD.*/export FGDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgdb &&\
 # Configure scripts fgliferay
-    sed -i "s/.*FGLOCATION.*/export FGLOCATION=\$(pwd)/" .fgprofile/fgliferay &&\
-    sed -i "s/.*LRDB_HOST.*/export LRDB_HOST=$FGDB_HOST/" .fgprofile/fgliferay &&\
-    sed -i "s/.*LRDB_PORT.*/export LRDB_PORT=$FGDB_PORT/" .fgprofile/fgliferay &&\
-    sed -i "s/.*LRDB_USER.*/export LRDB_USER=$FGDB_USER/" .fgprofile/fgliferay &&\
-    sed -i "s/.*LRDB_PASSWD.*/export LRDB_PASSWD=$FGDB_PASSWD/" .fgprofile/fgliferay &&\
-    sed -i "s/.*LRDB_NAME.*/export LRDB_NAME=$FGDB_NAME/" .fgprofile/fgliferay &&\
-    sed -i "s/.*LRDB_OPTS.*/export LRDB_OPTS=''/" .fgprofile/fgliferay &&\
-    sed -i "s/.*LRDB_ROOTPWD.*/export LRDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgliferay
+    sed -i "s/^export FGLOCATION.*/export FGLOCATION=$ESC_FG_DIR/" .fgprofile/fgliferay &&\
+    sed -i "s/^export LRDB_HOST.*/export LRDB_HOST=$DB_HOST/" .fgprofile/fgliferay &&\
+    sed -i "s/^export LRDB_PORT.*/export LRDB_PORT=$DB_PORT/" .fgprofile/fgliferay &&\
+    sed -i "s/^export LRDB_USER.*/export LRDB_USER=$DB_USER/" .fgprofile/fgliferay &&\
+    sed -i "s/^export LRDB_PASSWD.*/export LRDB_PASSWD=$DB_PASSWORD/" .fgprofile/fgliferay &&\
+    sed -i "s/^export LRDB_NAME.*/export LRDB_NAME=$DB_SCHEMA/" .fgprofile/fgliferay &&\
+    sed -i "s/^export LRDB_OPTS.*/export LRDB_OPTS=''/" .fgprofile/fgliferay &&\
+    sed -i "s/^export LRDB_ROOTPWD.*/export LRDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgliferay &&\
+    cat .fgprofile/fgliferay
 
 #
 # Additional setup for Executor Interfaces

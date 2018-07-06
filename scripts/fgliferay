@@ -18,8 +18,7 @@ export LRDB_NAME=
 export LRDB_ROOTPWD=
 export LRDB_OPTS=''
 
-lrdb () 
-{ 
+lrdb() { 
     cmd=$@;
     if [ "$cmd" != "" ]; then
         cmd="-e \"""$cmd""\"";
@@ -28,8 +27,7 @@ lrdb ()
     RES=$?;
     return $RES
 }
-lrdbr () 
-{ 
+lrdbr() { 
     cmd=$@;
     if [ "$cmd" != "" ]; then
         cmd="-e \"""$cmd""\"";
