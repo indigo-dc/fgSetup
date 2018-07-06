@@ -54,12 +54,17 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
             mysql-client\
             mlocate\
             vim\
+            gnupg\
+            build-essential\
             locales\
             jq &&\
    #sudo echo "$FG_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* &&\
     locale-gen en_US.UTF-8 &&\
+    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash - &&\
+    apt-get install -y nodejs &&\
+    npm install -g yo gulp &&\
     echo "portal.proxy.path=$FG_LIFERAY_PROXYPATH" >> /opt/liferay/etc/portal.properties &&\
     echo "default.logout.page.path=$FG_LIFERAY_PROXYPATH/web/guest/home" >> /var/lib/tomcat8/webapps/ROOT/WEB-INF/classes/portal-ext.properties &&\
     echo "default.landing.page.path=$FG_LIFERAY_PROXYPATH/web/guest/home" >> /var/lib/tomcat8/webapps/ROOT/WEB-INF/classes/portal-ext.properties &&\
@@ -77,14 +82,25 @@ RUN git clone $FGSETUP_GIT -b $FGSETUP_BRANCH &&\
     cp fgSetup/scripts/commons .fgprofile/commons &&\
     cp fgSetup/scripts/fgdb .fgprofile/fgdb &&\
     cp fgSetup/scripts/ei_gridengine .fgprofile/ei_gridengine &&\
-# Configure scripts
+    cp fgSetup/scripts/fgliferay .fgprofile/fgliferay &&\
+# Configure scripts fgdb
+    sed -i "s/.*FGLOCATION.*/export FGLOCATION=\$(pwd)/" .fgprofile/fgdb &&\
     sed -i "s/.*FGDB_HOST.*/export FGDB_HOST=$FGDB_HOST/" .fgprofile/fgdb &&\
     sed -i "s/.*FGDB_PORT.*/export FGDB_PORT=$FGDB_PORT/" .fgprofile/fgdb &&\
     sed -i "s/.*FGDB_USER.*/export FGDB_USER=$FGDB_USER/" .fgprofile/fgdb &&\
     sed -i "s/.*FGDB_PASSWD.*/export FGDB_PASSWD=$FGDB_PASSWD/" .fgprofile/fgdb &&\
     sed -i "s/.*FGDB_NAME.*/export FGDB_NAME=$FGDB_NAME/" .fgprofile/fgdb &&\
     sed -i "s/.*ASDB_OPTS.*/export ASDB_OPTS=''/" .fgprofile/fgdb &&\
-    sed -i "s/.*FGDB_ROOTPWD.*/export FGDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgdb 
+    sed -i "s/.*FGDB_ROOTPWD.*/export FGDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgdb &&\
+# Configure scripts fgliferay
+    sed -i "s/.*FGLOCATION.*/export FGLOCATION=\$(pwd)/" .fgprofile/fgliferay &&\
+    sed -i "s/.*LRDB_HOST.*/export LRDB_HOST=$FGDB_HOST/" .fgprofile/fgliferay &&\
+    sed -i "s/.*LRDB_PORT.*/export LRDB_PORT=$FGDB_PORT/" .fgprofile/fgliferay &&\
+    sed -i "s/.*LRDB_USER.*/export LRDB_USER=$FGDB_USER/" .fgprofile/fgliferay &&\
+    sed -i "s/.*LRDB_PASSWD.*/export LRDB_PASSWD=$FGDB_PASSWD/" .fgprofile/fgliferay &&\
+    sed -i "s/.*LRDB_NAME.*/export LRDB_NAME=$FGDB_NAME/" .fgprofile/fgliferay &&\
+    sed -i "s/.*LRDB_OPTS.*/export LRDB_OPTS=''/" .fgprofile/fgliferay &&\
+    sed -i "s/.*LRDB_ROOTPWD.*/export LRDB_ROOTPWD=$MYSQL_ROOT_PASSWORD/" .fgprofile/fgliferay
 
 #
 # Additional setup for Executor Interfaces

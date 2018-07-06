@@ -38,3 +38,7 @@ lrdbr ()
     RES=$?;
     return $RES
 }
+
+# Functions to export
+export -f lrdb
+export -f lrdbr
