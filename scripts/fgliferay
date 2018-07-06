@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# fgliferay Environment settings configuration file
+#
+# Very specific fgliferay service component environment must be set here
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+# FutureGateway location
+export FGLOCATION=
+
+# LRDB settings
+export LRDB_HOST=
+export LRDB_PORT=
+export LRDB_USER=
+export LRDB_PASSWD=
+export LRDB_NAME=
+export LRDB_ROOTPWD=
+export LRDB_OPTS=''
+
+lrdb () 
+{ 
+    cmd=$@;
+    if [ "$cmd" != "" ]; then
+        cmd="-e \"""$cmd""\"";
+    fi;
+    dbcn "$LRDB_HOST" "$LRDB_PORT" "$LRDB_USER" "$LRDB_PASSWD" "$LRDB_OPTS" "$LRDB_NAME" "$cmd";
+    RES=$?;
+    return $RES
+}
+lrdbr () 
+{ 
+    cmd=$@;
+    if [ "$cmd" != "" ]; then
+        cmd="-e \"""$cmd""\"";
+    fi;
+    dbcn "$LRDB_HOST" "$LRDB_PORT" root "$LRDB_ROOTPWD" "$LRDB_OPTS" "" "$cmd";
+    RES=$?;
+    return $RES
+}
