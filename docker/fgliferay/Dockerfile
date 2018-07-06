@@ -61,6 +61,9 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
     rm -rf /var/lib/apt/lists/* &&\
     locale-gen en_US.UTF-8 &&\
     echo "portal.proxy.path=$FG_LIFERAY_PROXYPATH" >> /opt/liferay/etc/portal.properties &&\
+    echo "default.logout.page.path=$FG_LIFERAY_PROXYPATH/web/guest/home" >> /var/lib/tomcat8/webapps/ROOT/WEB-INF/classes/portal-ext.properties &&\
+    echo "default.landing.page.path=$FG_LIFERAY_PROXYPATH/web/guest/home" >> /var/lib/tomcat8/webapps/ROOT/WEB-INF/classes/portal-ext.properties &&\
+   #echo "company.default.home.url=$FG_LIFERAY_PROXYPATH/web/guest/home" >> /var/lib/tomcat8/webapps/ROOT/WEB-INF/classes/portal-ext.properties &&\
     sed -i 's/<Service\ name=\"Catalina\">/<Service\ name=\"Catalina\">\n<Connector\ URIEncoding=\"UTF-8\"\ enableLookups=\"false\"\ port=\"8009\"\ protocol=\"AJP\/1.3\"\ redirectPort=\"8443\"\/>/' /etc/tomcat8/server.xml &&\
     echo "for f in \$(find $FG_DIR/.fgprofile -type f); do source \$f; done # FGLOADENV" >> /etc/profile.d/fg_profile.sh
 
