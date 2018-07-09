@@ -68,7 +68,7 @@ liferay_plugins:
             echo "wget \$$LIFERAY_PLUGINS_REL -O \$$LIFERAY_PLUGINS_TGZ &&\\" >> $$TMP &&\
             echo "tar xvfz \$$LIFERAY_PLUGINS_TGZ &&\\" >> $$TMP &&\
             echo "rm -f \$$LIFERAY_PLUGINS_TGZ &&\\" >> $$TMP &&\
-            echo "cp com.liferay.* /opt/liferay/home/deploy/ &&\\" >> $$TMP &&\
+            echo "cp com.liferay.* /opt/liferay/home/osgi/modules &&\\" >> $$TMP &&\
             echo "echo \"Liferay Plugins installation successfully done\" ||\\" >> $$TMP &&\
             echo "echo \"An error occurred while installing LiferayPlugins\"" >> $$TMP &&\
             chmod +x $$TMP &&\
