@@ -16,6 +16,8 @@ LFRY_DBUSER = lportal
 LFRY_DBPASS = lportal
 LPORTAL_SQL = lportal.sql
 MYSQL_ROOT_PASSWORD = rpass
+LIFERAY_PLUGINS_REL = https://github.com/indigo-dc/LiferayPlugIns/releases/download/2.2.1/LiferayPlugins-binary-2.2.1.tgz
+FG_DIR = /home/futuregateway
 
 default:
 	@echo "Usage: make <image|pubimg>"
@@ -51,6 +53,32 @@ volumes:
         [ -z "$$FGLFRYVOL" ] &&\
                 docker volume create $(FG_LIFERAYVOLNAME) ||\
                 echo "FG liferay volume exists at: $$FGLFRYVOL"
+
+liferay_plugins:
+	@FGLR_ID=`docker ps -a | grep fgliferay | awk '{ print $$1 }'|xargs echo` &&\
+        [ -n "$$FGLR_ID" ] &&\
+            echo "fgliferay Id: $$FGLR_ID" &&\
+            TMP=`mktemp` &&\
+            echo "#!/bin/bash" > $$TMP &&\
+            echo "#" >> $$TMP &&\
+            echo "# Liferay Plugin installation" >> $$TMP &&\
+            echo "#" >> $$TMP &&\
+            echo "LIFERAY_PLUGINS_TGZ=LiferayPlugins-binary-2.2.1.tgz &&\\" >> $$TMP &&\
+            echo "LIFERAY_PLUGINS_REL=$(LIFERAY_PLUGINS_REL) &&\\" >> $$TMP &&\
+            echo "wget \$$LIFERAY_PLUGINS_REL -O \$$LIFERAY_PLUGINS_TGZ &&\\" >> $$TMP &&\
+            echo "tar xvfz \$$LIFERAY_PLUGINS_TGZ &&\\" >> $$TMP &&\
+            echo "rm -f \$$LIFERAY_PLUGINS_TGZ &&\\" >> $$TMP &&\
+            echo "cp com.liferay.* /opt/liferay/home/deploy/ &&\\" >> $$TMP &&\
+            echo "echo \"Liferay Plugins installation successfully done\" ||\\" >> $$TMP &&\
+            echo "echo \"An error occurred while installing LiferayPlugins\"" >> $$TMP &&\
+            chmod +x $$TMP &&\
+            docker cp $$TMP $$FGLR_ID:$(FG_DIR)/liferay_plugins.sh &&\
+            rm -f $$TMP &&\
+            docker exec $$FGLR_ID /bin/bash -c "chmod +x $(FG_DIR)/liferay_plugins.sh" &&\
+            docker exec $$FGLR_ID /bin/bash -c "liferay_plugins.sh" &&\
+            echo "Done" ||\
+            echo "ERROR: No fgliferay node found"
+
 
 run: network volumes
 	@FGDB_IP=`docker network inspect fgnetwork|\

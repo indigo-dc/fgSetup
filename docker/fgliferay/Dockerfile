@@ -50,6 +50,7 @@ RUN adduser --disabled-password --gecos "" $FG_USER &&\
     apt-get update &&\
     apt-get install -y --no-install-recommends\
             curl\
+            wget\
             ca-certificates\
             sudo\
             git\
