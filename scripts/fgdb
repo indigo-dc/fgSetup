@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# fgdb Environment settings configuration file
+#
+# Very specific FGDB service component environment must be set here
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+# FutureGateway location
+export FGLOCATION=
+
+# FGDB settings
+export FGDB_HOST=
+export FGDB_PORT=
+export FGDB_USER=
+export FGDB_PASSWD=
+export FGDB_NAME=
+export FGDB_ROOTPWD=
+export ASDB_OPTS=

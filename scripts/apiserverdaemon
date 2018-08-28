@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# APIServerDaemon Environment settings configuration file
+#
+# Very specific APIServerDaemon service component environment must be set here
+#
+# Author: Riccardo Bruno <riccardo.bruno@ct.infn.it>
+
+catalina_env() {
+  export CATALINA=$(locate catalina.sh)
+  export CATALINA_HOME=$($CATALINA version | grep CATALINA_HOME| awk -F":" '{ print $2 }' | xargs echo )
+  export CATALINA_BASE=$($CATALINA version | grep CATALINA_BASE | awk -F":" '{ print $2 }' | xargs echo )
+}
+
+# Set CATALINA variables
+catalina_env
+
