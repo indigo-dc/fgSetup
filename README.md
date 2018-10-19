@@ -1,4 +1,4 @@
-<font color="red">This repository has been frozen at Indigo-dc deadline, new developments are available at the [new repository](https://github.com/FutureGatewayFramework)</font>
+<small><font color="red">This repository has been frozen at [INDIGO-dc](https://www.indigo-datacloud.eu) project deadline, except for changes and fixes related to the stability. New developments are available at the [new repository](https://github.com/FutureGatewayFramework)</font></small>
 
 # fgSetup
 This software installs and upgrades FutureGateway components.
