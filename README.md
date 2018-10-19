@@ -1,3 +1,5 @@
+<font color="red">This repository has been frozen at Indigo-dc deadline, new developments are available at the [new repository](https://github.com/FutureGatewayFramework)</font>
+
 # fgSetup
 This software installs and upgrades FutureGateway components.
 It provides an easy to use and very flexible solution to install different FutureGateway components on different hosts running each a different OS architecture. More components may also run on the same host.
