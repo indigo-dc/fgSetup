@@ -1,3 +1,8 @@
+<style
+  type="text/css">
+  p {color:red;}
+  p {font-size: 10%;}
+</style>
 <small><p style='color:red'>This repository has been frozen at [INDIGO-dc](https://www.indigo-datacloud.eu) project deadline, except for all those changes and fixes related to the stability. New developments are available at the [new repository](https://github.com/FutureGatewayFramework)</p></small>
 
 # fgSetup
